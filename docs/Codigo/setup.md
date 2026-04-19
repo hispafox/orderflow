@@ -36,29 +36,72 @@ dotnet new sln -n OrderFlow
 
 ### 0.2 Crear OrderFlow.ServiceDefaults
 
-```bash
-dotnet new aspire-servicedefaults \
-  -n OrderFlow.ServiceDefaults \
-  -o infrastructure/OrderFlow.ServiceDefaults
+En .NET 10 no existen las templates `aspire-servicedefaults`/`aspire-apphost` — Aspire se usa como NuGet packages directamente.
 
-dotnet sln OrderFlow.sln add \
+Crear `infrastructure/OrderFlow.ServiceDefaults/OrderFlow.ServiceDefaults.csproj`:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.*" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.*" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.*" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.*" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.*" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.*" />
+  </ItemGroup>
+
+</Project>
+```
+
+Copiar `Extensions.cs` del repo (ya existe en `infrastructure/OrderFlow.ServiceDefaults/Extensions.cs`).
+
+```bash
+dotnet sln OrderFlow.slnx add \
   infrastructure/OrderFlow.ServiceDefaults/OrderFlow.ServiceDefaults.csproj
 ```
 
 ### 0.3 Crear OrderFlow.AppHost
 
-```bash
-dotnet new aspire-apphost \
-  -n OrderFlow.AppHost \
-  -o infrastructure/OrderFlow.AppHost
+Crear `infrastructure/OrderFlow.AppHost/OrderFlow.AppHost.csproj`:
 
-dotnet sln OrderFlow.sln add \
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.2.2" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAspireHost>true</IsAspireHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="13.*" />
+  </ItemGroup>
+
+</Project>
+```
+
+> **Nota:** El `<Sdk Name="Aspire.AppHost.Sdk">` requiere versión exacta (no wildcards). Usar la última disponible en NuGet.
+
+```bash
+dotnet sln OrderFlow.slnx add \
   infrastructure/OrderFlow.AppHost/OrderFlow.AppHost.csproj
 ```
 
-### 0.4 Reemplazar AppHost/Program.cs
-
-El template genera código de ejemplo. Reemplazar con el skeleton limpio:
+### 0.4 Contenido de AppHost/Program.cs
 
 ```csharp
 var builder = DistributedApplication.CreateBuilder(args);
@@ -132,7 +175,7 @@ insert_final_newline = true
 ### 0.7 Verificar que compila
 
 ```bash
-dotnet build OrderFlow.sln
+dotnet build OrderFlow.slnx
 ```
 
 Sin errores. Sin warnings.
@@ -143,8 +186,8 @@ Sin errores. Sin warnings.
 git add .
 git commit -m "start: solution skeleton
 
-- OrderFlow.sln
-- infrastructure/OrderFlow.ServiceDefaults (Aspire template)
+- OrderFlow.slnx
+- infrastructure/OrderFlow.ServiceDefaults
 - infrastructure/OrderFlow.AppHost (sin servicios registrados)
 - .editorconfig"
 
@@ -171,8 +214,8 @@ git checkout -b m2.2       # crear la nueva rama
 #    (leer el fichero completo antes de tocar nada)
 
 # 3. Verificar
-dotnet build OrderFlow.sln                    # 0 errores, 0 warnings
-dotnet test OrderFlow.sln --verbosity normal  # 0 failing
+dotnet build OrderFlow.slnx                    # 0 errores, 0 warnings
+dotnet test OrderFlow.slnx --verbosity normal  # 0 failing
 
 # 4. Commit (usar el mensaje exacto del fichero docs/Codigo/mX.Y.md)
 git add .
@@ -201,7 +244,7 @@ orderflow/
 ├── .editorconfig
 ├── .gitignore
 ├── CLAUDE.md
-├── OrderFlow.sln
+├── OrderFlow.slnx
 ├── docs/
 │   └── Codigo/
 │       ├── setup.md          ← este fichero
@@ -215,7 +258,7 @@ orderflow/
     │   └── appsettings.json    ← LocalDB + RabbitMQ
     └── OrderFlow.ServiceDefaults/
         ├── OrderFlow.ServiceDefaults.csproj
-        └── Extensions.cs      ← generado por el template aspire-servicedefaults
+        └── Extensions.cs
 ```
 
 `src/`, `shared/` y `tests/` no existen en `start` — se crean módulo a módulo.
