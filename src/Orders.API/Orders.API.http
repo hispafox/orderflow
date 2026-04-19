@@ -1,0 +1,37 @@
+@baseUrl = https://localhost:7153
+
+### GET todos los pedidos
+GET {{baseUrl}}/api/orders
+Accept: application/json
+
+###
+
+### GET pedido por ID (devuelve 404 en skeleton)
+GET {{baseUrl}}/api/orders/3fa85f64-5717-4562-b3fc-2c963f66afa6
+Accept: application/json
+
+###
+
+### POST crear pedido
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "items": [
+    {
+      "productId": "a4b5c6d7-e8f9-0123-4567-89abcdef0123",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### Health check (registrado por ServiceDefaults)
+GET {{baseUrl}}/health
+
+###
+
+### OpenAPI spec (solo en Development)
+GET {{baseUrl}}/openapi/v1.json
