@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/infrastructure/">
+    <Project Path="infrastructure/OrderFlow.AppHost/OrderFlow.AppHost.csproj" />
+    <Project Path="infrastructure/OrderFlow.ServiceDefaults/OrderFlow.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

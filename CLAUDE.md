@@ -29,7 +29,7 @@
 | .NET | 10 LTS | Runtime y SDK |
 | C# | 14 | Lenguaje |
 | ASP.NET Core | 10 | Framework web |
-| .NET Aspire | 9.1 | Orquestación local + Dashboard |
+| .NET Aspire | 13.x | Orquestación local + Dashboard |
 | Entity Framework Core | 10 | ORM (write side) |
 | Dapper | 2.x | Read model (queries) |
 | MediatR | 12.x | CQRS + Pipeline Behaviors |
@@ -52,7 +52,7 @@
 ```
 orderflow/
 ├── CLAUDE.md                          ← este fichero
-├── OrderFlow.sln
+├── OrderFlow.slnx
 ├── .gitignore
 ├── .editorconfig
 │
@@ -195,7 +195,7 @@ var messaging = builder.AddConnectionString("messaging");
 
 ## Aspire — orquestador local
 
-.NET Aspire 9.1 orquesta todos los servicios en desarrollo. El AppHost es el proyecto de entrada.
+.NET Aspire 13.x orquesta todos los servicios en desarrollo. El AppHost es el proyecto de entrada.
 
 ```bash
 # Arrancar todos los servicios
@@ -531,8 +531,8 @@ Cuando te digan "implementa el módulo M_X_Y", el flujo es:
 2. Confirma en qué rama estás con: git branch --show-current
 3. Si la rama no existe: git checkout <rama-anterior> && git checkout -b mX.Y
 4. Ejecuta todos los pasos del fichero docs/mX.Y.md en orden
-5. Compila: dotnet build OrderFlow.sln (0 errores, 0 warnings)
-6. Tests: dotnet test OrderFlow.sln (todos deben pasar)
+5. Compila: dotnet build OrderFlow.slnx (0 errores, 0 warnings)
+6. Tests: dotnet test OrderFlow.slnx (todos deben pasar)
 7. Arranca Aspire y verifica manualmente que todo funciona
 8. Commit con el mensaje exacto del fichero docs/mX.Y.md
 9. Push: git push origin mX.Y
@@ -567,13 +567,13 @@ Estas reglas son **inquebrantables**. Si algo contradice estas reglas, la regla 
 
 ```bash
 # Compila todo
-dotnet build OrderFlow.sln
+dotnet build OrderFlow.slnx
 
 # Tests pasan (0 failing)
-dotnet test OrderFlow.sln --verbosity normal
+dotnet test OrderFlow.slnx --verbosity normal
 
 # Sin warnings de nullable
-dotnet build OrderFlow.sln -warnaserror
+dotnet build OrderFlow.slnx -warnaserror
 
 # Sin secretos commiteados
 git diff --cached -- "*.json" | grep -i "password\|secret\|apikey\|connectionstring"
