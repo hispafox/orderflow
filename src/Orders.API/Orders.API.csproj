@@ -6,9 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Orders.API</RootNamespace>
     <AssemblyName>Orders.API</AssemblyName>
+    <UserSecretsId>orderflow-orders-api</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="9.*" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.*" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.0" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.*" />
   </ItemGroup>
 
