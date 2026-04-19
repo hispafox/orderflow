@@ -71,7 +71,8 @@ try
     // ─── Health Checks ────────────────────────────────────────────────────────
     builder.Services.AddHealthChecks()
         .AddSqlServer(
-            connectionString: builder.Configuration.GetConnectionString("sqlserver")!,
+            connectionStringFactory: sp =>
+                sp.GetRequiredService<IConfiguration>().GetConnectionString("sqlserver")!,
             healthQuery: "SELECT 1",
             name: "orders-db",
             failureStatus: HealthStatus.Unhealthy,
@@ -100,7 +101,7 @@ try
     var app = builder.Build();
 
     // ─── Pipeline ─────────────────────────────────────────────────────────────
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
         app.MapOpenApi();
 
     app.UseHttpsRedirection();
@@ -151,3 +152,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Necesario para WebApplicationFactory en tests de integración
+public partial class Program { }
