@@ -57,10 +57,15 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
+API/Middleware/CorrelationIdMiddleware.cs
 Application/Settings/
  OrdersSettings.cs
  OrdersSettingsValidator.cs
 Controllers/OrdersController.cs
+Infrastructure/Telemetry/
+ OpenTelemetryEnricher.cs
+ OrdersMetrics.cs
+ OrdersTelemetry.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
  Orders.API.AssemblyInfo.cs
@@ -391,6 +396,7 @@ Program.cs
  microsoft.extensions.ambientmetadata.application/10.5.0/lib/net10.0/Microsoft.Extensions.AmbientMetadata.Application.dll
  microsoft.extensions.compliance.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Compliance.Abstractions.dll
  microsoft.extensions.dependencyinjection.autoactivation/10.5.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll
+ microsoft.extensions.dependencymodel/10.0.0/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
  microsoft.extensions.http.diagnostics/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Diagnostics.dll
  microsoft.extensions.http.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Resilience.dll
@@ -414,6 +420,7 @@ Program.cs
  opentelemetry.exporter.opentelemetryprotocol/1.15.2/lib/net10.0/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll
  opentelemetry.extensions.hosting/1.15.2/lib/net10.0/OpenTelemetry.Extensions.Hosting.dll
  opentelemetry.instrumentation.aspnetcore/1.15.1/lib/net10.0/OpenTelemetry.Instrumentation.AspNetCore.dll
+ opentelemetry.instrumentation.entityframeworkcore/1.15.0-beta.1/lib/net10.0/OpenTelemetry.Instrumentation.EntityFrameworkCore.dll
  opentelemetry.instrumentation.http/1.15.0/lib/net10.0/OpenTelemetry.Instrumentation.Http.dll
  opentelemetry.instrumentation.runtime/1.15.0/lib/net10.0/OpenTelemetry.Instrumentation.Runtime.dll
  opentelemetry/1.15.2/lib/net10.0/OpenTelemetry.dll
@@ -421,6 +428,18 @@ Program.cs
  polly.extensions/8.4.2/lib/net8.0/Polly.Extensions.dll
  polly.ratelimiting/8.4.2/lib/net8.0/Polly.RateLimiting.dll
  rabbitmq.client/7.0.0/lib/net8.0/RabbitMQ.Client.dll
+ serilog.aspnetcore/10.0.0/lib/net10.0/Serilog.AspNetCore.dll
+ serilog.enrichers.environment/3.0.1/lib/net8.0/Serilog.Enrichers.Environment.dll
+ serilog.enrichers.process/3.0.0/lib/net8.0/Serilog.Enrichers.Process.dll
+ serilog.enrichers.thread/4.0.0/lib/net8.0/Serilog.Enrichers.Thread.dll
+ serilog.extensions.hosting/10.0.0/lib/net10.0/Serilog.Extensions.Hosting.dll
+ serilog.extensions.logging/10.0.0/lib/net10.0/Serilog.Extensions.Logging.dll
+ serilog.formatting.compact/3.0.0/lib/net8.0/Serilog.Formatting.Compact.dll
+ serilog.settings.configuration/10.0.0/lib/net10.0/Serilog.Settings.Configuration.dll
+ serilog.sinks.console/6.1.1/lib/net8.0/Serilog.Sinks.Console.dll
+ serilog.sinks.debug/3.0.0/lib/net8.0/Serilog.Sinks.Debug.dll
+ serilog.sinks.file/7.0.0/lib/net9.0/Serilog.Sinks.File.dll
+ serilog/4.3.0/lib/net9.0/Serilog.dll
  system.clientmodel/1.10.0/lib/net10.0/System.ClientModel.dll
  system.identitymodel.tokens.jwt/6.35.0/lib/net6.0/System.IdentityModel.Tokens.Jwt.dll
  system.memory.data/10.0.3/lib/net10.0/System.Memory.Data.dll
