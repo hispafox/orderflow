@@ -2,85 +2,152 @@ using Azure.Identity;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using OpenTelemetry.Trace;
+using Orders.API.API.Middleware;
 using Orders.API.Application.Settings;
+using Orders.API.Infrastructure.Telemetry;
 using RabbitMQ.Client;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+// ─── Bootstrap logger ──────────────────────────────────────────────────────────
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// ─── Aspire ServiceDefaults ───────────────────────────────────────────────────
-builder.AddServiceDefaults();
-
-// ─── Validación del DI container en desarrollo ───────────────────────────────
-builder.Host.UseDefaultServiceProvider(options =>
+try
 {
-    options.ValidateScopes = builder.Environment.IsDevelopment();
-    options.ValidateOnBuild = builder.Environment.IsDevelopment();
-});
+    var builder = WebApplication.CreateBuilder(args);
 
-// ─── Patrón Options con validación en startup ─────────────────────────────────
-builder.Services
-    .AddOptions<OrdersSettings>()
-    .BindConfiguration(OrdersSettings.SectionName)
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+    // ─── Aspire ServiceDefaults ───────────────────────────────────────────────
+    builder.AddServiceDefaults();
 
-builder.Services
-    .AddSingleton<IValidateOptions<OrdersSettings>, OrdersSettingsValidator>();
+    // ─── Serilog ─────────────────────────────────────────────────────────────
+    builder.Host.UseSerilog((ctx, services, cfg) => cfg
+        .ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .Enrich.WithEnvironmentName()
+        .Enrich.With<OpenTelemetryEnricher>());
 
-// ─── RabbitMQ connection (singleton) para Health Check ───────────────────────
-builder.Services.AddSingleton<IConnection>(_ =>
-{
-    var factory = new ConnectionFactory
+    // ─── OpenTelemetry — extender lo que ServiceDefaults ya configuró ─────────
+    builder.Services.AddOpenTelemetry()
+        .WithTracing(tracing => tracing
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddSource("Orders.API"))
+        .WithMetrics(metrics => metrics
+            .AddMeter("Orders.API"));
+
+    builder.Services.AddSingleton<OrdersMetrics>();
+
+    // ─── Validación del DI container en desarrollo ────────────────────────────
+    builder.Host.UseDefaultServiceProvider(options =>
     {
-        Uri = new Uri(builder.Configuration.GetConnectionString("messaging")!)
-    };
-    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-});
+        options.ValidateScopes = builder.Environment.IsDevelopment();
+        options.ValidateOnBuild = builder.Environment.IsDevelopment();
+    });
 
-// ─── Health Checks ─────────────────────────────────────────────────────────────
-builder.Services.AddHealthChecks()
-    .AddSqlServer(
-        connectionString: builder.Configuration.GetConnectionString("sqlserver")!,
-        healthQuery: "SELECT 1",
-        name: "orders-db",
-        failureStatus: HealthStatus.Unhealthy,
-        tags: ["ready", "db"])
-    .AddRabbitMQ(
-        name: "rabbitmq",
-        failureStatus: HealthStatus.Degraded,
-        tags: ["ready", "messaging"]);
+    // ─── Patrón Options con validación en startup ─────────────────────────────
+    builder.Services
+        .AddOptions<OrdersSettings>()
+        .BindConfiguration(OrdersSettings.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
 
-// ─── Servicios ────────────────────────────────────────────────────────────────
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+    builder.Services
+        .AddSingleton<IValidateOptions<OrdersSettings>, OrdersSettingsValidator>();
 
-// ─── Azure Key Vault en producción (Managed Identity, sin credenciales en código)
-if (!builder.Environment.IsDevelopment())
-{
-    var keyVaultUri = builder.Configuration["KeyVaultUri"];
-    if (!string.IsNullOrEmpty(keyVaultUri))
+    // ─── RabbitMQ connection (singleton) para Health Check ───────────────────
+    builder.Services.AddSingleton<IConnection>(_ =>
     {
-        builder.Configuration.AddAzureKeyVault(
-            new Uri(keyVaultUri),
-            new DefaultAzureCredential());
+        var factory = new ConnectionFactory
+        {
+            Uri = new Uri(builder.Configuration.GetConnectionString("messaging")!)
+        };
+        return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+    });
+
+    // ─── Health Checks ────────────────────────────────────────────────────────
+    builder.Services.AddHealthChecks()
+        .AddSqlServer(
+            connectionString: builder.Configuration.GetConnectionString("sqlserver")!,
+            healthQuery: "SELECT 1",
+            name: "orders-db",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: ["ready", "db"])
+        .AddRabbitMQ(
+            name: "rabbitmq",
+            failureStatus: HealthStatus.Degraded,
+            tags: ["ready", "messaging"]);
+
+    // ─── Servicios ────────────────────────────────────────────────────────────
+    builder.Services.AddControllers();
+    builder.Services.AddOpenApi();
+
+    // ─── Azure Key Vault en producción ────────────────────────────────────────
+    if (!builder.Environment.IsDevelopment())
+    {
+        var keyVaultUri = builder.Configuration["KeyVaultUri"];
+        if (!string.IsNullOrEmpty(keyVaultUri))
+        {
+            builder.Configuration.AddAzureKeyVault(
+                new Uri(keyVaultUri),
+                new DefaultAzureCredential());
+        }
     }
+
+    var app = builder.Build();
+
+    // ─── Pipeline ─────────────────────────────────────────────────────────────
+    if (app.Environment.IsDevelopment())
+        app.MapOpenApi();
+
+    app.UseHttpsRedirection();
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
+    app.UseSerilogRequestLogging(options =>
+    {
+        options.MessageTemplate =
+            "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+
+        options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+            diagnosticContext.Set("UserAgent",
+                httpContext.Request.Headers["User-Agent"].FirstOrDefault());
+        };
+
+        options.GetLevel = (ctx, elapsed, ex) =>
+        {
+            if (ex is not null) return LogEventLevel.Error;
+            if (ctx.Response.StatusCode >= 500) return LogEventLevel.Error;
+            if (ctx.Response.StatusCode >= 400) return LogEventLevel.Warning;
+            if (ctx.Request.Path.StartsWithSegments("/health") ||
+                ctx.Request.Path.StartsWithSegments("/alive"))
+                return LogEventLevel.Verbose;
+            return LogEventLevel.Information;
+        };
+    });
+
+    app.UseAuthorization();
+    app.MapControllers();
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready")
+    });
+
+    app.MapDefaultEndpoints(); // /health y /alive
+
+    app.Run();
 }
-
-var app = builder.Build();
-
-// ─── Pipeline ─────────────────────────────────────────────────────────────────
-if (app.Environment.IsDevelopment())
-    app.MapOpenApi();
-
-app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
+catch (Exception ex)
 {
-    Predicate = check => check.Tags.Contains("ready")
-});
-
-app.MapDefaultEndpoints(); // /health y /alive — de ServiceDefaults
-
-app.Run();
+    Log.Fatal(ex, "Application startup failed");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
