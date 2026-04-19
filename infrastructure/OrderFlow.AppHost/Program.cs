@@ -1,15 +1,14 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Recursos externos — sin Docker
-// Las connection strings se configuran en appsettings.json o User Secrets
+// SQL Server local (LocalDB) — sin Docker
 var sqlServer = builder.AddConnectionString("sqlserver");
+
+// RabbitMQ local — sin Docker
 var messaging = builder.AddConnectionString("messaging");
 
-// Los servicios se añaden módulo a módulo:
-// M2.1 → orders-api
-// M3.3 → products-api
-// M4.2 → notifications-api
-// M4.3 → payments-api
-// M4.4 → gateway-api
+// Servicio Orders.API
+builder.AddProject<Projects.Orders_API>("orders-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging);
 
 builder.Build().Run();
