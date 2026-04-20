@@ -10,6 +10,26 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env.local
+.env.*.local
+
+# ─── Secretos de desarrollo ───────────────────────────────────────────────────
+**/secrets.json
+**/usersecrets.json
+
+# ─── Certificados y claves privadas ──────────────────────────────────────────
+**/*.p12
+**/*.key
+**/*.pem
+**/*.cer
+**/dev-cert.*
+
+# ─── Overrides locales de configuración ──────────────────────────────────────
+appsettings.Local.json
+appsettings.*.Local.json
+
+# ─── Claves privadas ──────────────────────────────────────────────────────────
+**/private_key*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

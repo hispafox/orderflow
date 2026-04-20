@@ -385,11 +385,16 @@ Services/JwtService.cs
  WindowsBase.dll
 ../../infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
 <NUGET>/
- azure.core/1.47.1/lib/net8.0/Azure.Core.dll
- azure.identity/1.14.2/lib/net8.0/Azure.Identity.dll
+ aspnetcore.healthchecks.azurekeyvault/9.0.0/lib/net8.0/HealthChecks.AzureKeyVault.dll
+ azure.core/1.53.0/lib/net10.0/Azure.Core.dll
+ azure.extensions.aspnetcore.configuration.secrets/1.5.0/lib/net10.0/Azure.Extensions.AspNetCore.Configuration.Secrets.dll
+ azure.identity/1.21.0/lib/net10.0/Azure.Identity.dll
+ azure.security.keyvault.certificates/4.5.1/lib/netstandard2.0/Azure.Security.KeyVault.Certificates.dll
+ azure.security.keyvault.keys/4.5.0/lib/netstandard2.0/Azure.Security.KeyVault.Keys.dll
+ azure.security.keyvault.secrets/4.9.0/lib/net10.0/Azure.Security.KeyVault.Secrets.dll
  microsoft.aspnetcore.authentication.jwtbearer/10.0.6/lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
  microsoft.aspnetcore.identity.entityframeworkcore/10.0.6/lib/net10.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
- microsoft.bcl.asyncinterfaces/8.0.0/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
  microsoft.data.sqlclient/6.1.1/ref/net9.0/Microsoft.Data.SqlClient.dll
  microsoft.entityframeworkcore.abstractions/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -401,6 +406,7 @@ Services/JwtService.cs
  microsoft.extensions.dependencyinjection.autoactivation/10.5.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll
  microsoft.extensions.dependencymodel/10.0.6/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
+ microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/10.0.6/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
  microsoft.extensions.http.diagnostics/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Diagnostics.dll
  microsoft.extensions.http.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Resilience.dll
  microsoft.extensions.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Resilience.dll
@@ -408,8 +414,8 @@ Services/JwtService.cs
  microsoft.extensions.servicediscovery/10.5.0/lib/net10.0/Microsoft.Extensions.ServiceDiscovery.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.Abstractions.dll
  microsoft.extensions.telemetry/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.dll
- microsoft.identity.client.extensions.msal/4.73.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
- microsoft.identity.client/4.73.1/lib/net8.0/Microsoft.Identity.Client.dll
+ microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
+ microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
  microsoft.identitymodel.abstractions/8.17.0/lib/net10.0/Microsoft.IdentityModel.Abstractions.dll
  microsoft.identitymodel.jsonwebtokens/8.17.0/lib/net10.0/Microsoft.IdentityModel.JsonWebTokens.dll
  microsoft.identitymodel.logging/8.17.0/lib/net10.0/Microsoft.IdentityModel.Logging.dll
@@ -438,10 +444,10 @@ Services/JwtService.cs
  serilog.sinks.debug/3.0.0/lib/net8.0/Serilog.Sinks.Debug.dll
  serilog.sinks.file/7.0.0/lib/net9.0/Serilog.Sinks.File.dll
  serilog/4.3.0/lib/net9.0/Serilog.dll
- system.clientmodel/1.5.1/lib/net8.0/System.ClientModel.dll
+ system.clientmodel/1.10.0/lib/net10.0/System.ClientModel.dll
  system.identitymodel.tokens.jwt/8.17.0/lib/net10.0/System.IdentityModel.Tokens.Jwt.dll
  system.io.hashing/8.0.0/lib/net8.0/System.IO.Hashing.dll
- system.memory.data/8.0.1/lib/net8.0/System.Memory.Data.dll
+ system.memory.data/10.0.3/lib/net10.0/System.Memory.Data.dll
  system.security.cryptography.pkcs/9.0.4/lib/net9.0/System.Security.Cryptography.Pkcs.dll
  system.security.cryptography.protecteddata/9.0.4/lib/net9.0/System.Security.Cryptography.ProtectedData.dll
  yarp.reverseproxy/2.3.0/lib/net8.0/Yarp.ReverseProxy.dll
@@ -479,7 +485,7 @@ Services/JwtService.cs
  microsoft.extensions.telemetry.abstractions/10.5.0/analyzers/dotnet/cs/
   Microsoft.Gen.Logging.dll
   Microsoft.Gen.Metrics.dll
- system.clientmodel/1.5.1/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
+ system.clientmodel/1.10.0/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
 
 [analyzerConfigFiles]
 ../../

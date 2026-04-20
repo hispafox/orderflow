@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using Azure.Identity;
 using Gateway.API.Data;
 using Gateway.API.Endpoints;
 using Gateway.API.Services;
@@ -7,11 +8,22 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ─── Azure Key Vault (solo en producción) ─────────────────────────────────────
+if (builder.Environment.IsProduction())
+{
+    var keyVaultUri = new Uri(
+        builder.Configuration["KeyVault:Uri"]
+        ?? throw new InvalidOperationException("KeyVault:Uri is required in Production"));
+
+    builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
+}
 
 // ─── ServiceDefaults ─────────────────────────────────────────────────────────
 builder.AddServiceDefaults();
@@ -148,7 +160,27 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddHealthChecks();
+if (builder.Environment.IsProduction())
+{
+    var kvUri = builder.Configuration["KeyVault:Uri"]!;
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<GatewayIdentityDbContext>(
+            name: "identity-db",
+            failureStatus: HealthStatus.Unhealthy)
+        .AddAzureKeyVault(
+            new Uri(kvUri),
+            new DefaultAzureCredential(),
+            options => { options.AddSecret("Jwt--SigningKey"); },
+            name: "key-vault",
+            failureStatus: HealthStatus.Unhealthy);
+}
+else
+{
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<GatewayIdentityDbContext>(
+            name: "identity-db",
+            failureStatus: HealthStatus.Unhealthy);
+}
 
 var app = builder.Build();
 

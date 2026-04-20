@@ -104,7 +104,7 @@ try
             tags: ["ready", "messaging"]);
 
     // ─── Infraestructura ──────────────────────────────────────────────────────────
-    builder.Services.AddOrdersInfrastructure(builder.Configuration);
+    builder.Services.AddOrdersInfrastructure(builder.Configuration, builder.Environment);
 
     // ─── HTTP Context (necesario para CorrelationIdDelegatingHandler) ─────────────
     builder.Services.AddHttpContextAccessor();
@@ -188,29 +188,57 @@ try
                 .AddTimeout(TimeSpan.FromSeconds(5));
         });
 
-    // ─── MassTransit + RabbitMQ + Saga ───────────────────────────────────────────
-    builder.Services.AddMassTransit(x =>
+    // ─── MassTransit + Saga: RabbitMQ (dev) / Azure Service Bus (prod) ──────────
+    if (builder.Environment.IsProduction())
     {
-        x.AddSagaStateMachine<OrderSaga, OrderSagaState>()
-            .EntityFrameworkRepository(r =>
-            {
-                r.ConcurrencyMode = ConcurrencyMode.Optimistic;
-                r.ExistingDbContext<OrderDbContext>();
-            });
-
-        x.UsingRabbitMq((context, cfg) =>
+        builder.Services.AddMassTransit(x =>
         {
-            cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+            x.AddSagaStateMachine<OrderSaga, OrderSagaState>()
+                .EntityFrameworkRepository(r =>
+                {
+                    r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                    r.ExistingDbContext<OrderDbContext>();
+                });
 
-            cfg.UseMessageRetry(r => r.Exponential(
-                retryLimit:    5,
-                minInterval:   TimeSpan.FromSeconds(1),
-                maxInterval:   TimeSpan.FromSeconds(30),
-                intervalDelta: TimeSpan.FromSeconds(2)));
+            x.UsingAzureServiceBus((context, cfg) =>
+            {
+                cfg.Host(
+                    new Uri("sb://orderflow.servicebus.windows.net"),
+                    host => { host.TokenCredential = new DefaultAzureCredential(); });
 
-            cfg.ConfigureEndpoints(context);
+                cfg.UseMessageRetry(r => r.Exponential(
+                    5, TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2)));
+
+                cfg.ConfigureEndpoints(context);
+            });
         });
-    });
+    }
+    else
+    {
+        builder.Services.AddMassTransit(x =>
+        {
+            x.AddSagaStateMachine<OrderSaga, OrderSagaState>()
+                .EntityFrameworkRepository(r =>
+                {
+                    r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                    r.ExistingDbContext<OrderDbContext>();
+                });
+
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+
+                cfg.UseMessageRetry(r => r.Exponential(
+                    retryLimit:    5,
+                    minInterval:   TimeSpan.FromSeconds(1),
+                    maxInterval:   TimeSpan.FromSeconds(30),
+                    intervalDelta: TimeSpan.FromSeconds(2)));
+
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+    }
 
     // ─── JWT Authentication ───────────────────────────────────────────────────
     builder.Services
@@ -273,16 +301,14 @@ try
         });
     });
 
-    // ─── Azure Key Vault en producción ────────────────────────────────────────
-    if (!builder.Environment.IsDevelopment())
+    // ─── Azure Key Vault (solo en producción) ────────────────────────────────
+    if (builder.Environment.IsProduction())
     {
-        var keyVaultUri = builder.Configuration["KeyVaultUri"];
-        if (!string.IsNullOrEmpty(keyVaultUri))
-        {
-            builder.Configuration.AddAzureKeyVault(
-                new Uri(keyVaultUri),
-                new DefaultAzureCredential());
-        }
+        var keyVaultUri = new Uri(
+            builder.Configuration["KeyVault:Uri"]
+            ?? throw new InvalidOperationException("KeyVault:Uri is required in Production"));
+
+        builder.Configuration.AddAzureKeyVault(keyVaultUri, new DefaultAzureCredential());
     }
 
     var app = builder.Build();
