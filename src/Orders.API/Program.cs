@@ -1,17 +1,24 @@
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Identity;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Http.Resilience;
 using Orders.API.Application.Behaviors;
 using Orders.API.Infrastructure;
+using Orders.API.Infrastructure.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
 using Orders.API.API.Middleware;
 using Orders.API.Application.Settings;
 using Orders.API.Infrastructure.Telemetry;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Fallback;
+using Polly.Timeout;
 using RabbitMQ.Client;
 using Serilog;
 using Serilog.Events;
@@ -90,6 +97,88 @@ try
 
     // ─── Infraestructura ──────────────────────────────────────────────────────────
     builder.Services.AddOrdersInfrastructure(builder.Configuration);
+
+    // ─── HTTP Context (necesario para CorrelationIdDelegatingHandler) ─────────────
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddMemoryCache();
+
+    // ─── DelegatingHandlers ───────────────────────────────────────────────────────
+    builder.Services.AddTransient<CorrelationIdDelegatingHandler>();
+    builder.Services.AddTransient<LoggingDelegatingHandler>();
+
+    // ─── ProductsClient con DelegatingHandlers + Polly ───────────────────────────
+    builder.Services
+        .AddHttpClient<ProductsClient>(client =>
+        {
+            client.BaseAddress = new Uri("http://products-api");
+            client.DefaultRequestHeaders.Add("Accept",     "application/json");
+            client.DefaultRequestHeaders.Add("User-Agent", "Orders.API/1.0");
+        })
+        .AddHttpMessageHandler<CorrelationIdDelegatingHandler>()
+        .AddHttpMessageHandler<LoggingDelegatingHandler>()
+        .AddResilienceHandler("products-pipeline", (pipeline, context) =>
+        {
+            var logger = context.ServiceProvider
+                .GetRequiredService<ILogger<Program>>();
+
+            pipeline
+                .AddFallback(new FallbackStrategyOptions<HttpResponseMessage>
+                {
+                    ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                        .Handle<BrokenCircuitException>()
+                        .Handle<TimeoutRejectedException>(),
+                    FallbackAction = _ =>
+                    {
+                        logger.LogWarning("Fallback activated for Products.API");
+                        return ValueTask.FromResult(
+                            Outcome.FromResult(
+                                new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)));
+                    }
+                })
+                .AddTimeout(TimeSpan.FromSeconds(10))
+                .AddRetry(new HttpRetryStrategyOptions
+                {
+                    MaxRetryAttempts = 3,
+                    Delay            = TimeSpan.FromMilliseconds(500),
+                    BackoffType      = DelayBackoffType.Exponential,
+                    UseJitter        = true,
+                    OnRetry = args =>
+                    {
+                        logger.LogWarning(
+                            "Retry {Attempt}/3 for Products.API — {Cause} — delay {DelayMs}ms",
+                            args.AttemptNumber + 1,
+                            args.Outcome.Exception?.Message
+                                ?? args.Outcome.Result?.StatusCode.ToString(),
+                            args.RetryDelay.TotalMilliseconds);
+                        return ValueTask.CompletedTask;
+                    }
+                })
+                .AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+                {
+                    FailureRatio      = 0.5,
+                    SamplingDuration  = TimeSpan.FromSeconds(30),
+                    MinimumThroughput = 5,
+                    BreakDuration     = TimeSpan.FromSeconds(30),
+                    OnOpened = args =>
+                    {
+                        logger.LogError(
+                            "Circuit OPENED for Products.API! Break: {Sec}s",
+                            args.BreakDuration.TotalSeconds);
+                        return ValueTask.CompletedTask;
+                    },
+                    OnClosed = _ =>
+                    {
+                        logger.LogInformation("Circuit CLOSED — Products.API healthy again");
+                        return ValueTask.CompletedTask;
+                    },
+                    OnHalfOpened = _ =>
+                    {
+                        logger.LogInformation("Circuit HALF-OPEN — testing Products.API...");
+                        return ValueTask.CompletedTask;
+                    }
+                })
+                .AddTimeout(TimeSpan.FromSeconds(5));
+        });
 
     // ─── FluentValidation ────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
