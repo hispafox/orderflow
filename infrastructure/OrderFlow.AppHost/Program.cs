@@ -19,15 +19,22 @@ var notifications = builder
     .WithReference(messaging);
 
 // Payments.API — consumer de ProcessPayment
-builder
+var payments = builder
     .AddProject<Projects.Payments_API>("payments-api")
     .WithReference(sqlServer)
     .WithReference(messaging);
 
 // Orders.API — Saga orchestrator, referencia a Products para Service Discovery
-builder.AddProject<Projects.Orders_API>("orders-api")
+var orders = builder.AddProject<Projects.Orders_API>("orders-api")
     .WithReference(sqlServer)
     .WithReference(messaging)
     .WithReference(products);
+
+// Gateway.API — punto de entrada único para todo el tráfico externo
+builder.AddProject<Projects.Gateway_API>("gateway-api")
+    .WithReference(orders)
+    .WithReference(products)
+    .WithReference(payments)
+    .WithReference(notifications);
 
 builder.Build().Run();

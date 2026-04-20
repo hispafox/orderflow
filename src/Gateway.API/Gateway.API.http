@@ -1,0 +1,72 @@
+# OrderFlow — Todo el tráfico pasa por el Gateway
+# Antes: 4 puertos distintos. Ahora: solo :8080
+@api         = https://localhost:8080
+@productId   = REEMPLAZAR_CON_ID_REAL
+@orderId     = REEMPLAZAR_CON_ID_REAL
+
+### ─── HEALTH ──────────────────────────────────────────────────────────────────
+GET {{api}}/health
+### → {"status":"Healthy"} — health del propio gateway
+
+### ─── PRODUCTOS ────────────────────────────────────────────────────────────────
+GET {{api}}/api/products
+### → YARP enruta a products-api/api/products
+
+GET {{api}}/api/products/{{productId}}
+
+POST {{api}}/api/products
+Content-Type: application/json
+
+{
+  "name": "MacBook Pro 16\" M4",
+  "description": "El portátil más potente de Apple",
+  "price": 3999.99,
+  "currency": "EUR",
+  "initialStock": 10,
+  "categoryId": "c1b2a3d4-e5f6-0123-4567-89abcdef0123"
+}
+
+### ─── PEDIDOS ───────────────────────────────────────────────────────────────────
+GET {{api}}/api/orders
+
+GET {{api}}/api/orders/{{orderId}}
+
+### Ver estado de la Saga
+GET {{api}}/api/orders/{{orderId}}/saga-state
+
+### Crear pedido (rate limit: 10/min — política CreateOrder)
+POST {{api}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId":    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "customerEmail": "john@techshop.es",
+  "items": [{
+    "productId":   "{{productId}}",
+    "productName": "MacBook Pro 16\" M4",
+    "quantity": 1,
+    "unitPrice":   3999.99,
+    "currency":    "EUR"
+  }],
+  "shippingAddress": {
+    "street":  "Gran Vía 28",
+    "city":    "Madrid",
+    "zipCode": "28013",
+    "country": "ES"
+  }
+}
+### → YARP enruta a orders-api/api/orders → 201 Created + Saga inicia
+
+POST {{api}}/api/orders/{{orderId}}/confirm
+
+POST {{api}}/api/orders/{{orderId}}/cancel
+Content-Type: application/json
+
+{ "reason": "Customer changed their mind" }
+
+### ─── TEST RATE LIMIT ─────────────────────────────────────────────────────────
+### Ejecutar más de 10 veces seguidas → 429 Too Many Requests + Retry-After: 60
+POST {{api}}/api/orders
+Content-Type: application/json
+
+{}
