@@ -14,6 +14,10 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         RuleFor(x => x.CustomerId)
             .NotEmpty().WithMessage("CustomerId is required");
 
+        RuleFor(x => x.CustomerEmail)
+            .NotEmpty().WithMessage("CustomerEmail is required")
+            .EmailAddress().WithMessage("CustomerEmail must be a valid email address");
+
         RuleFor(x => x.Items)
             .NotEmpty().WithMessage("Order must have at least one item")
             .Must(items => items.Count <= 50)

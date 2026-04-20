@@ -30,7 +30,7 @@ public class ProductsClient
     /// Obtiene el detalle de un producto.
     /// Cachea precio y datos estáticos 5 min. Stock no se cachea.
     /// </summary>
-    public async Task<ProductDetailDto?> GetProductAsync(
+    public virtual async Task<ProductDetailDto?> GetProductAsync(
         Guid productId,
         CancellationToken ct = default)
     {
@@ -92,7 +92,7 @@ public class ProductsClient
     /// Reserva stock para un pedido.
     /// No cacheable: operación de escritura, resultado siempre fresco.
     /// </summary>
-    public async Task<bool> ReserveStockAsync(
+    public virtual async Task<bool> ReserveStockAsync(
         Guid productId,
         Guid orderId,
         int  quantity,

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Identity;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Http.Resilience;
@@ -50,7 +51,8 @@ try
             .AddEntityFrameworkCoreInstrumentation()
             .AddSource("Orders.API"))
         .WithMetrics(metrics => metrics
-            .AddMeter("Orders.API"));
+            .AddMeter("Orders.API")
+            .AddMeter("MassTransit"));
 
     builder.Services.AddSingleton<OrdersMetrics>();
 
@@ -179,6 +181,24 @@ try
                 })
                 .AddTimeout(TimeSpan.FromSeconds(5));
         });
+
+    // ─── MassTransit + RabbitMQ ───────────────────────────────────────────────
+    builder.Services.AddMassTransit(x =>
+    {
+        // Orders.API solo PUBLICA — sin consumers propios en M4.2
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+
+            cfg.UseMessageRetry(r => r.Exponential(
+                retryLimit:    5,
+                minInterval:   TimeSpan.FromSeconds(1),
+                maxInterval:   TimeSpan.FromSeconds(30),
+                intervalDelta: TimeSpan.FromSeconds(2)));
+
+            cfg.ConfigureEndpoints(context);
+        });
+    });
 
     // ─── FluentValidation ────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);

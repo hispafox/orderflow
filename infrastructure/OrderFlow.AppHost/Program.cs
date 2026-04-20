@@ -12,6 +12,12 @@ var products = builder
     .WithReference(sqlServer)
     .WithReference(messaging);
 
+// Notifications.API — consumer de OrderCreated
+var notifications = builder
+    .AddProject<Projects.Notifications_API>("notifications-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging);
+
 // Orders.API — referencia a Products para Service Discovery
 builder.AddProject<Projects.Orders_API>("orders-api")
     .WithReference(sqlServer)

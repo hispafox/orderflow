@@ -4,12 +4,9 @@ using Orders.API.Application.Behaviors;
 
 namespace Orders.API.Application.Commands;
 
-/// <summary>
-/// Command para crear un nuevo pedido.
-/// ITransactional → TransactionBehavior envuelve la ejecución en una transacción EF Core.
-/// </summary>
 public record CreateOrderCommand(
     Guid                              CustomerId,
+    string                            CustomerEmail,
     IReadOnlyList<CreateOrderItemDto> Items,
     CreateOrderAddressDto             ShippingAddress)
     : IRequest<OrderDto>, ITransactional;

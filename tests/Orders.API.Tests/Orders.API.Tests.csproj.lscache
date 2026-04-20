@@ -76,12 +76,16 @@ Shared/
   OrdersApiCollection.cs
   OrdersApiFactory.cs
 Unit/Application/
+ CreateOrderHandlerPublishTests.cs
+ CreateOrderHandlerTests.cs
  CreateOrderValidatorTests.cs
  GetOrderByIdHandlerTests.cs
+ ValidationBehaviorTests.cs
 Unit/Domain/
  MoneyTests.cs
  OrderStatusTransitionTests.cs
  OrderTests.cs
+Unit/Infrastructure/ProductsClientTests.cs
 
 [metadataReferences]
 ../../../../../Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.2/ref/net10.0/
@@ -362,6 +366,7 @@ Unit/Domain/
  WindowsBase.dll
 ../../
  infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
+ shared/OrderFlow.Contracts/obj/Debug/net10.0/ref/OrderFlow.Contracts.dll
  src/Orders.API/obj/Debug/net10.0/ref/Orders.API.dll
 <NUGET>/
  aspnetcore.healthchecks.rabbitmq/9.0.0/lib/net8.0/HealthChecks.Rabbitmq.dll
@@ -372,6 +377,13 @@ Unit/Domain/
  azure.security.keyvault.secrets/4.9.0/lib/net10.0/Azure.Security.KeyVault.Secrets.dll
  castle.core/5.1.1/lib/net6.0/Castle.Core.dll
  fluentassertions/8.9.0/lib/net6.0/FluentAssertions.dll
+ fluentvalidation.dependencyinjectionextensions/12.1.1/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
+ fluentvalidation/12.1.1/lib/net8.0/FluentValidation.dll
+ masstransit.abstractions/9.1.0/lib/net10.0/MassTransit.Abstractions.dll
+ masstransit.rabbitmq/9.1.0/lib/net10.0/MassTransit.RabbitMqTransport.dll
+ masstransit/9.1.0/lib/net10.0/MassTransit.dll
+ mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
+ mediatr/12.5.0/lib/net6.0/MediatR.dll
  microsoft.aspnetcore.mvc.testing/10.0.6/lib/net10.0/Microsoft.AspNetCore.Mvc.Testing.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.aspnetcore.testhost/10.0.6/lib/net10.0/Microsoft.AspNetCore.TestHost.dll
@@ -462,7 +474,10 @@ Unit/Domain/
  polly.core/8.4.2/lib/net8.0/Polly.Core.dll
  polly.extensions/8.4.2/lib/net8.0/Polly.Extensions.dll
  polly.ratelimiting/8.4.2/lib/net8.0/Polly.RateLimiting.dll
- rabbitmq.client/7.0.0/lib/net8.0/RabbitMQ.Client.dll
+ rabbitmq.client/7.2.0/lib/net8.0/RabbitMQ.Client.dll
+ refit.httpclientfactory/10.1.6/lib/net10.0/Refit.HttpClientFactory.dll
+ refit/10.1.6/lib/net10.0/Refit.dll
+ richardszalay.mockhttp/7.0.0/lib/net6.0/RichardSzalay.MockHttp.dll
  serilog.aspnetcore/10.0.0/lib/net10.0/Serilog.AspNetCore.dll
  serilog.enrichers.environment/3.0.1/lib/net8.0/Serilog.Enrichers.Environment.dll
  serilog.enrichers.process/3.0.0/lib/net8.0/Serilog.Enrichers.Process.dll
@@ -510,6 +525,7 @@ Unit/Domain/
  microsoft.extensions.telemetry.abstractions/10.5.0/analyzers/dotnet/cs/
   Microsoft.Gen.Logging.dll
   Microsoft.Gen.Metrics.dll
+ refit/10.1.6/analyzers/dotnet/roslyn5.0/cs/InterfaceStubGeneratorV3.dll
  system.clientmodel/1.10.0/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
  xunit.analyzers/1.18.0/analyzers/dotnet/cs/
   xunit.analyzers.dll

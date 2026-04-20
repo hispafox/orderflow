@@ -41,7 +41,8 @@ public class OrdersEndpointTests
     {
         var request = new
         {
-            customerId = Guid.NewGuid(),
+            customerId    = Guid.NewGuid(),
+            customerEmail = "test@example.com",
             items = new[]
             {
                 new

@@ -15,29 +15,18 @@ primary
 lastDtbSucceeded
 
 [properties]
-AssemblyName=Orders.API
-CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE
-CompilerGeneratedFilesOutputPath=
-MaxSupportedLangVersion=14.0
-ProjectAssetsFile=<PATH>obj/project.assets.json
-RootNamespace=Orders.API
-RunAnalyzers=
-RunAnalyzersDuringLiveAnalysis=
-SolutionPath=<PATH>../../OrderFlow.slnx
-TargetFrameworkIdentifier=.NETCoreApp
-TargetPath=<PATH>bin/Debug/net10.0/Orders.API.dll
-TargetRefPath=<PATH>obj/Debug/net10.0/ref/Orders.API.dll
-TemporaryDependencyNodeTargetIdentifier=net10.0
+CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE -doc:"obj\Debug\net10.0\Orders.API.xml"
 
 [commandLineArguments]
 /noconfig
 /unsafe-
 /checked-
-/nowarn:1701,1702,1701,1702
+/nowarn:CS1591,1701,1702
 /fullpaths
 /nostdlib+
 /errorreport:prompt
 /warn:10
+/doc:obj\Debug\net10.0\Orders.API.xml
 /define:TRACE;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
 /highentropyva+
 /nullable:enable
@@ -57,11 +46,42 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-API/Middleware/CorrelationIdMiddleware.cs
-Application/Settings/
- OrdersSettings.cs
- OrdersSettingsValidator.cs
-Controllers/OrdersController.cs
+API/
+ Controllers/OrdersController.cs
+ DTOs/
+  OrderFilterParams.cs
+  PagedResult.cs
+  Requests/
+   CancelOrderRequest.cs
+   CreateOrderRequest.cs
+  Responses/OrderDto.cs
+ Mappings/OrderMappings.cs
+ Middleware/
+  CorrelationIdMiddleware.cs
+  DomainExceptionMiddleware.cs
+Application/Behaviors/
+ ITransactional.cs
+ LoggingBehavior.cs
+ TransactionBehavior.cs
+ ValidationBehavior.cs
+Application/Commands/
+ CancelOrderCommand.cs
+ CancelOrderHandler.cs
+ ConfirmOrderCommand.cs
+ ConfirmOrderHandler.cs
+ CreateOrderCommand.cs
+ CreateOrderCommandValidator.cs
+ CreateOrderHandler.cs
+Application/
+ Exceptions/OrderNotFoundException.cs
+ Queries/
+  GetOrderByIdHandler.cs
+  GetOrderByIdQuery.cs
+  ListOrdersHandler.cs
+  ListOrdersQuery.cs
+ Settings/
+  OrdersSettings.cs
+  OrdersSettingsValidator.cs
 Domain/Entities/
  Order.cs
  OrderLine.cs
@@ -80,6 +100,12 @@ Domain/
   Address.cs
   Money.cs
   OrderStatus.cs
+Infrastructure/Http/
+ CorrelationIdDelegatingHandler.cs
+ IProductsApi.cs
+ LoggingDelegatingHandler.cs
+ ProductDetailDto.cs
+ ProductsClient.cs
 Infrastructure/Persistence/Migrations/
  20260420054412_InitialOrderSchema.cs
  20260420054412_InitialOrderSchema.Designer.cs
@@ -409,7 +435,9 @@ Program.cs
  System.Xml.XPath.dll
  System.Xml.XPath.XDocument.dll
  WindowsBase.dll
-../../infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
+../../
+ infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
+ shared/OrderFlow.Contracts/obj/Debug/net10.0/ref/OrderFlow.Contracts.dll
 <NUGET>/
  aspnetcore.healthchecks.rabbitmq/9.0.0/lib/net8.0/HealthChecks.Rabbitmq.dll
  aspnetcore.healthchecks.sqlserver/9.0.0/lib/net8.0/HealthChecks.SqlServer.dll
@@ -417,6 +445,13 @@ Program.cs
  azure.extensions.aspnetcore.configuration.secrets/1.5.0/lib/net10.0/Azure.Extensions.AspNetCore.Configuration.Secrets.dll
  azure.identity/1.21.0/lib/net10.0/Azure.Identity.dll
  azure.security.keyvault.secrets/4.9.0/lib/net10.0/Azure.Security.KeyVault.Secrets.dll
+ fluentvalidation.dependencyinjectionextensions/12.1.1/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
+ fluentvalidation/12.1.1/lib/net8.0/FluentValidation.dll
+ masstransit.abstractions/9.1.0/lib/net10.0/MassTransit.Abstractions.dll
+ masstransit.rabbitmq/9.1.0/lib/net10.0/MassTransit.RabbitMqTransport.dll
+ masstransit/9.1.0/lib/net10.0/MassTransit.dll
+ mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
+ mediatr/12.5.0/lib/net6.0/MediatR.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
@@ -459,7 +494,9 @@ Program.cs
  polly.core/8.4.2/lib/net8.0/Polly.Core.dll
  polly.extensions/8.4.2/lib/net8.0/Polly.Extensions.dll
  polly.ratelimiting/8.4.2/lib/net8.0/Polly.RateLimiting.dll
- rabbitmq.client/7.0.0/lib/net8.0/RabbitMQ.Client.dll
+ rabbitmq.client/7.2.0/lib/net8.0/RabbitMQ.Client.dll
+ refit.httpclientfactory/10.1.6/lib/net10.0/Refit.HttpClientFactory.dll
+ refit/10.1.6/lib/net10.0/Refit.dll
  serilog.aspnetcore/10.0.0/lib/net10.0/Serilog.AspNetCore.dll
  serilog.enrichers.environment/3.0.1/lib/net8.0/Serilog.Enrichers.Environment.dll
  serilog.enrichers.process/3.0.0/lib/net8.0/Serilog.Enrichers.Process.dll
@@ -512,6 +549,7 @@ Program.cs
  microsoft.extensions.telemetry.abstractions/10.5.0/analyzers/dotnet/cs/
   Microsoft.Gen.Logging.dll
   Microsoft.Gen.Metrics.dll
+ refit/10.1.6/analyzers/dotnet/roslyn5.0/cs/InterfaceStubGeneratorV3.dll
  system.clientmodel/1.10.0/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
 
 [analyzerConfigFiles]

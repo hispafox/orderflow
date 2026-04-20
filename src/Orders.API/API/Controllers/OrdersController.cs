@@ -71,7 +71,8 @@ public class OrdersController : ControllerBase
         CancellationToken ct = default)
     {
         var command = new CreateOrderCommand(
-            CustomerId: request.CustomerId,
+            CustomerId:    request.CustomerId,
+            CustomerEmail: request.CustomerEmail,
             Items: request.Items.Select(i => new CreateOrderItemDto(
                 i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.Currency)).ToList(),
             ShippingAddress: new CreateOrderAddressDto(

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.*" />
+    <PackageReference Include="MassTransit" Version="9.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
@@ -33,6 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Orders.API\Orders.API.csproj" />
+    <ProjectReference Include="..\..\shared\OrderFlow.Contracts\OrderFlow.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
