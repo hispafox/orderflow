@@ -16,9 +16,13 @@ public class ListOrdersHandler : IRequestHandler<ListOrdersQuery, PagedResult<Or
         ListOrdersQuery   query,
         CancellationToken ct)
     {
+        var customerIdFilter = query.IsAdmin
+            ? query.CustomerId
+            : (query.UserId is not null ? Guid.Parse(query.UserId) : query.CustomerId);
+
         var (orders, total) = await _repository.ListAsync(
             status:     query.Status,
-            customerId: query.CustomerId,
+            customerId: customerIdFilter,
             page:       query.Page,
             pageSize:   query.PageSize,
             ct:         ct);

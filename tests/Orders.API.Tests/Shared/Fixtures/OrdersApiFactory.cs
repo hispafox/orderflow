@@ -33,7 +33,10 @@ public class OrdersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:sqlserver"] = ConnectionString,
-                ["ConnectionStrings:messaging"] = "amqp://guest:guest@localhost:5672"
+                ["ConnectionStrings:messaging"] = "amqp://guest:guest@localhost:5672",
+                ["Jwt:SigningKey"]               = "orderflow-dev-signing-key-min-32-chars!!",
+                ["Jwt:Issuer"]                   = "orderflow-gateway",
+                ["Jwt:Audience"]                 = "orderflow"
             });
         });
 

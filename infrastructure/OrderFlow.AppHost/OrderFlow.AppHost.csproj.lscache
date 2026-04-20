@@ -59,6 +59,7 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
  Aspire/references/
+  Gateway_API.ProjectMetadata.g.cs
   Notifications_API.ProjectMetadata.g.cs
   Orders_API.ProjectMetadata.g.cs
   Payments_API.ProjectMetadata.g.cs

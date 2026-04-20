@@ -1,48 +1,27 @@
 # OrderFlow — Todo el tráfico pasa por el Gateway
-# Antes: 4 puertos distintos. Ahora: solo :8080
-@api         = https://localhost:8080
-@productId   = REEMPLAZAR_CON_ID_REAL
-@orderId     = REEMPLAZAR_CON_ID_REAL
+@api = https://localhost:8080
 
-### ─── HEALTH ──────────────────────────────────────────────────────────────────
-GET {{api}}/health
-### → {"status":"Healthy"} — health del propio gateway
-
-### ─── PRODUCTOS ────────────────────────────────────────────────────────────────
-GET {{api}}/api/products
-### → YARP enruta a products-api/api/products
-
-GET {{api}}/api/products/{{productId}}
-
-POST {{api}}/api/products
+### ─── 1. LOGIN — Customer ───────────────────────────────────────────────────
+POST {{api}}/account/login
 Content-Type: application/json
 
 {
-  "name": "MacBook Pro 16\" M4",
-  "description": "El portátil más potente de Apple",
-  "price": 3999.99,
-  "currency": "EUR",
-  "initialStock": 10,
-  "categoryId": "c1b2a3d4-e5f6-0123-4567-89abcdef0123"
+  "email":    "john@techshop.es",
+  "password": "Customer1234!"
 }
+### → { "access_token": "eyJ...", "token_type": "Bearer", "expires_in": 3600 }
 
-### ─── PEDIDOS ───────────────────────────────────────────────────────────────────
-GET {{api}}/api/orders
+@token = PEGAR_TOKEN_AQUI
 
-GET {{api}}/api/orders/{{orderId}}
-
-### Ver estado de la Saga
-GET {{api}}/api/orders/{{orderId}}/saga-state
-
-### Crear pedido (rate limit: 10/min — política CreateOrder)
+### ─── 2. PEDIDO CON TOKEN ────────────────────────────────────────────────────
 POST {{api}}/api/orders
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "customerId":    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "customerEmail": "john@techshop.es",
   "items": [{
-    "productId":   "{{productId}}",
+    "productId":   "REEMPLAZAR_CON_ID_REAL",
     "productName": "MacBook Pro 16\" M4",
     "quantity": 1,
     "unitPrice":   3999.99,
@@ -55,18 +34,35 @@ Content-Type: application/json
     "country": "ES"
   }
 }
-### → YARP enruta a orders-api/api/orders → 201 Created + Saga inicia
+### → 201 Created — customerId se toma del JWT (sub), no del body
 
-POST {{api}}/api/orders/{{orderId}}/confirm
+### ─── 3. LISTAR PEDIDOS (solo los del customer autenticado) ─────────────────
+GET {{api}}/api/orders
+Authorization: Bearer {{token}}
+### → 200 OK con los pedidos del customer
 
-POST {{api}}/api/orders/{{orderId}}/cancel
+### ─── 4. SIN TOKEN — debe devolver 401 ──────────────────────────────────────
+GET {{api}}/api/orders
+### → 401 Unauthorized
+
+### ─── 5. LOGIN ADMIN ─────────────────────────────────────────────────────────
+POST {{api}}/account/login
 Content-Type: application/json
 
-{ "reason": "Customer changed their mind" }
+{ "email": "admin@techshop.es", "password": "Admin1234!" }
 
-### ─── TEST RATE LIMIT ─────────────────────────────────────────────────────────
-### Ejecutar más de 10 veces seguidas → 429 Too Many Requests + Retry-After: 60
-POST {{api}}/api/orders
-Content-Type: application/json
+@adminToken = PEGAR_TOKEN_ADMIN_AQUI
 
-{}
+### ─── 6. CONFIRMAR PEDIDO (solo admin) ──────────────────────────────────────
+### Con token customer → 403 Forbidden
+### Con token admin    → 204 No Content
+POST {{api}}/api/orders/REEMPLAZAR_CON_ID_REAL/confirm
+Authorization: Bearer {{adminToken}}
+
+### ─── HEALTH ──────────────────────────────────────────────────────────────────
+GET {{api}}/health
+### → {"status":"Healthy"}
+
+### ─── PRODUCTOS (sin autenticación) ─────────────────────────────────────────
+GET {{api}}/api/products
+### → YARP enruta a products-api/api/products

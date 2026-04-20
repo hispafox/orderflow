@@ -60,10 +60,12 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 Contract/Pact/
  OrderCreatedConsumerTest.cs
  OrderCreatedProviderTest.cs
-Integration/Endpoints/
- OrdersEndpointTests.cs
- SmokeTests.cs
-Integration/Infrastructure/OrderRepositoryTests.cs
+Integration/
+ Auth/AuthenticationTests.cs
+ Endpoints/
+  OrdersEndpointTests.cs
+  SmokeTests.cs
+ Infrastructure/OrderRepositoryTests.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
  Orders.API.Tests.AssemblyInfo.cs
@@ -75,6 +77,7 @@ Shared/
   LocalDbFixture.cs
   OrdersApiCollection.cs
   OrdersApiFactory.cs
+ JwtTestHelper.cs
 Unit/Application/
  CreateOrderHandlerPublishTests.cs
  CreateOrderHandlerTests.cs
@@ -387,6 +390,7 @@ Unit/
  masstransit/9.1.0/lib/net10.0/MassTransit.dll
  mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
  mediatr/12.5.0/lib/net6.0/MediatR.dll
+ microsoft.aspnetcore.authentication.jwtbearer/10.0.6/lib/net10.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
  microsoft.aspnetcore.mvc.testing/10.0.6/lib/net10.0/Microsoft.AspNetCore.Mvc.Testing.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.aspnetcore.testhost/10.0.6/lib/net10.0/Microsoft.AspNetCore.TestHost.dll
@@ -445,11 +449,11 @@ Unit/
  microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
  microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
- microsoft.identitymodel.jsonwebtokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.JsonWebTokens.dll
- microsoft.identitymodel.logging/7.7.1/lib/net8.0/Microsoft.IdentityModel.Logging.dll
- microsoft.identitymodel.protocols.openidconnect/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
- microsoft.identitymodel.protocols/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.dll
- microsoft.identitymodel.tokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.Tokens.dll
+ microsoft.identitymodel.jsonwebtokens/8.0.1/lib/net9.0/Microsoft.IdentityModel.JsonWebTokens.dll
+ microsoft.identitymodel.logging/8.0.1/lib/net9.0/Microsoft.IdentityModel.Logging.dll
+ microsoft.identitymodel.protocols.openidconnect/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+ microsoft.identitymodel.protocols/8.0.1/lib/net9.0/Microsoft.IdentityModel.Protocols.dll
+ microsoft.identitymodel.tokens/8.0.1/lib/net9.0/Microsoft.IdentityModel.Tokens.dll
  microsoft.openapi/2.0.0/lib/net8.0/Microsoft.OpenApi.dll
  microsoft.sqlserver.server/1.0.0/lib/netstandard2.0/Microsoft.SqlServer.Server.dll
  microsoft.testplatform.testhost/17.14.1/lib/net8.0/
@@ -495,7 +499,7 @@ Unit/
  serilog/4.3.0/lib/net9.0/Serilog.dll
  system.clientmodel/1.10.0/lib/net10.0/System.ClientModel.dll
  system.diagnostics.eventlog/10.0.6/lib/net10.0/System.Diagnostics.EventLog.dll
- system.identitymodel.tokens.jwt/7.7.1/lib/net8.0/System.IdentityModel.Tokens.Jwt.dll
+ system.identitymodel.tokens.jwt/8.0.1/lib/net9.0/System.IdentityModel.Tokens.Jwt.dll
  system.memory.data/10.0.3/lib/net10.0/System.Memory.Data.dll
  system.security.cryptography.pkcs/9.0.4/lib/net9.0/System.Security.Cryptography.Pkcs.dll
  system.security.cryptography.protecteddata/9.0.4/lib/net9.0/System.Security.Cryptography.ProtectedData.dll

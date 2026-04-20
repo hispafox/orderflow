@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.API.DTOs;
@@ -11,17 +13,13 @@ using Orders.API.Sagas;
 
 namespace Orders.API.API.Controllers;
 
-/// <summary>
-/// Controller de gestión de pedidos.
-/// Principio del Controller delgado: solo traduce HTTP ↔ Commands/Queries.
-/// Toda la lógica de negocio vive en los Handlers de MediatR.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize(Policy = "CustomerOrAdmin")]
 public class OrdersController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IMediator                 _mediator;
     private readonly ILogger<OrdersController> _logger;
 
     public OrdersController(IMediator mediator, ILogger<OrdersController> logger)
@@ -30,17 +28,29 @@ public class OrdersController : ControllerBase
         _logger   = logger;
     }
 
-    /// <summary>Lista pedidos con filtros opcionales y paginación.</summary>
+    private string GetUserId() =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.FindFirstValue("sub")
+        ?? throw new UnauthorizedAccessException("User ID not found in token");
+
+    private bool IsAdmin() => User.IsInRole("admin");
+
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<OrderSummaryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PagedResult<OrderSummaryDto>>> GetAll(
         [FromQuery] OrderFilterParams filters,
         CancellationToken ct = default)
     {
-        _logger.LogInformation("Listing orders. Status: {Status}, Page: {Page}", filters.Status, filters.Page);
+        var userId = GetUserId();
 
         var result = await _mediator.Send(
-            new ListOrdersQuery(filters.Status, filters.Page, filters.PageSize, filters.CustomerId), ct);
+            new ListOrdersQuery(
+                filters.Status,
+                filters.Page,
+                filters.PageSize,
+                CustomerId: null,
+                UserId:     userId,
+                IsAdmin:    IsAdmin()), ct);
 
         Response.Headers["X-Total-Count"] = result.TotalCount.ToString();
         Response.Headers["X-Total-Pages"]  = result.TotalPages.ToString();
@@ -48,7 +58,6 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Obtiene el detalle completo de un pedido.</summary>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -62,10 +71,12 @@ public class OrdersController : ControllerBase
             return NotFound();
         }
 
+        if (!IsAdmin() && order.CustomerId.ToString() != GetUserId())
+            return Forbid();
+
         return Ok(order);
     }
 
-    /// <summary>Crea un nuevo pedido.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -74,7 +85,7 @@ public class OrdersController : ControllerBase
         CancellationToken ct = default)
     {
         var command = new CreateOrderCommand(
-            CustomerId:    request.CustomerId,
+            CustomerId:    Guid.Parse(GetUserId()),
             CustomerEmail: request.CustomerEmail,
             Items: request.Items.Select(i => new CreateOrderItemDto(
                 i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.Currency)).ToList(),
@@ -91,8 +102,8 @@ public class OrdersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
-    /// <summary>Confirma un pedido pendiente.</summary>
     [HttpPost("{id:guid}/confirm")]
+    [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
@@ -102,18 +113,22 @@ public class OrdersController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Cancela un pedido.</summary>
     [HttpPost("{id:guid}/cancel")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelOrderRequest request, CancellationToken ct = default)
     {
+        var order = await _mediator.Send(new GetOrderByIdQuery(id), ct);
+        if (order is null) return NotFound();
+
+        if (!IsAdmin() && order.CustomerId.ToString() != GetUserId())
+            return Forbid();
+
         await _mediator.Send(new CancelOrderCommand(id, request.Reason), ct);
         return NoContent();
     }
 
-    /// <summary>Devuelve el estado actual de la Saga para un pedido.</summary>
     [HttpGet("{id:guid}/saga-state")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

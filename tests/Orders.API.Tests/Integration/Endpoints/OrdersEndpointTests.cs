@@ -1,7 +1,9 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using Orders.API.Tests.Shared;
 using Orders.API.Tests.Shared.Fixtures;
 
 namespace Orders.API.Tests.Integration.Endpoints;
@@ -15,6 +17,8 @@ public class OrdersEndpointTests
     public OrdersEndpointTests(OrdersApiFactory factory)
     {
         _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", JwtTestHelper.CustomerToken());
     }
 
     [Fact]
@@ -41,7 +45,6 @@ public class OrdersEndpointTests
     {
         var request = new
         {
-            customerId    = Guid.NewGuid(),
             customerEmail = "test@example.com",
             items = new[]
             {

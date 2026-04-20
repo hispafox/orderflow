@@ -6,6 +6,9 @@ var sqlServer = builder.AddConnectionString("sqlserver");
 // RabbitMQ local — sin Docker
 var messaging = builder.AddConnectionString("messaging");
 
+// Identity DB para Gateway.API
+var identityDb = builder.AddConnectionString("IdentityDb");
+
 // Products.API
 var products = builder
     .AddProject<Projects.Products_API>("products-api")
@@ -35,6 +38,7 @@ builder.AddProject<Projects.Gateway_API>("gateway-api")
     .WithReference(orders)
     .WithReference(products)
     .WithReference(payments)
-    .WithReference(notifications);
+    .WithReference(notifications)
+    .WithReference(identityDb);
 
 builder.Build().Run();

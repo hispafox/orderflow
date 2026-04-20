@@ -1,11 +1,19 @@
-using Microsoft.AspNetCore.RateLimiting;
+using System.Text;
 using System.Threading.RateLimiting;
+using Gateway.API.Data;
+using Gateway.API.Endpoints;
+using Gateway.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── ServiceDefaults (OpenTelemetry, health checks base) ─────────────────────
+// ─── ServiceDefaults ─────────────────────────────────────────────────────────
 builder.AddServiceDefaults();
 
 // ─── Serilog ─────────────────────────────────────────────────────────────────
@@ -16,6 +24,76 @@ builder.Host.UseSerilog((ctx, svc, cfg) => cfg
     .Enrich.WithProperty("Service", "gateway-api")
     .Enrich.WithMachineName());
 
+// ─── Identity DbContext ───────────────────────────────────────────────────────
+builder.Services.AddDbContext<GatewayIdentityDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("IdentityDb"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "identity")));
+
+// ─── ASP.NET Core Identity ────────────────────────────────────────────────────
+builder.Services
+    .AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        options.Password.RequiredLength         = 8;
+        options.Password.RequireNonAlphanumeric = false;
+        options.SignIn.RequireConfirmedEmail     = false;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(5);
+    })
+    .AddEntityFrameworkStores<GatewayIdentityDbContext>()
+    .AddDefaultTokenProviders();
+
+// ─── JWT Authentication ───────────────────────────────────────────────────────
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var signingKey  = new SymmetricSecurityKey(
+    Encoding.UTF8.GetBytes(jwtSettings["SigningKey"]!));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer    = true,
+            ValidIssuer       = jwtSettings["Issuer"],
+            ValidateAudience  = true,
+            ValidAudience     = jwtSettings["Audience"],
+            ValidateLifetime  = true,
+            IssuerSigningKey  = signingKey,
+            ClockSkew         = TimeSpan.FromSeconds(30)
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = ctx =>
+            {
+                Log.Warning("JWT validation failed: {Error} for {Path}",
+                    ctx.Exception.Message, ctx.HttpContext.Request.Path);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = ctx =>
+            {
+                var userId = ctx.Principal?
+                    .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                Log.Debug("JWT valid for user {UserId}", userId);
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+// ─── Authorization Policies ───────────────────────────────────────────────────
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CustomerOrAdmin", policy =>
+        policy.RequireRole("customer", "admin"));
+
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("admin"));
+});
+
+// ─── JwtService ───────────────────────────────────────────────────────────────
+builder.Services.AddScoped<JwtService>();
+
 // ─── YARP ─────────────────────────────────────────────────────────────────────
 builder.Services
     .AddReverseProxy()
@@ -24,7 +102,6 @@ builder.Services
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>
 {
-    // Política general: 100 peticiones por minuto por IP (ventana deslizante)
     options.AddSlidingWindowLimiter("PerIp", config =>
     {
         config.Window              = TimeSpan.FromMinutes(1);
@@ -34,7 +111,6 @@ builder.Services.AddRateLimiter(options =>
         config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
     });
 
-    // Política estricta para creación de pedidos: 10 por minuto
     options.AddFixedWindowLimiter("CreateOrder", config =>
     {
         config.Window      = TimeSpan.FromMinutes(1);
@@ -72,15 +148,22 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ─── Health checks ────────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// 1. CORS — antes del rate limiter para que los preflight OPTIONS pasen
+// ─── Seed de usuarios de prueba ───────────────────────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    await app.Services.GetRequiredService<GatewayIdentityDbContext>()
+        .Database.MigrateAsync();
+    await SeedData.InitializeAsync(scope.ServiceProvider);
+}
+
+// ─── Pipeline (orden crítico) ─────────────────────────────────────────────────
 app.UseCors("TechShopFrontend");
 
-// 2. CorrelationId inline
 app.Use(async (context, next) =>
 {
     var correlationId = context.Request.Headers["X-Correlation-Id"].FirstOrDefault()
@@ -92,7 +175,6 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// 3. Serilog request logging
 app.UseSerilogRequestLogging(opts =>
 {
     opts.GetLevel = (ctx, _, _) =>
@@ -106,13 +188,13 @@ app.UseSerilogRequestLogging(opts =>
     };
 });
 
-// 4. Rate Limiting — ANTES de MapReverseProxy
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseRateLimiter();
 
-// 5. YARP
+app.MapAccountEndpoints();
 app.MapReverseProxy();
-
-// 6. Health y alive del propio gateway
 app.MapDefaultEndpoints();
 
 app.Run();

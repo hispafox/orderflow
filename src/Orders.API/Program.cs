@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Identity;
@@ -6,8 +7,10 @@ using FluentValidation;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using MediatR;
-using Orders.API.Sagas;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+using Orders.API.Sagas;
 using Microsoft.Extensions.Http.Resilience;
 using Orders.API.Application.Behaviors;
 using Orders.API.Infrastructure;
@@ -209,6 +212,35 @@ try
         });
     });
 
+    // ─── JWT Authentication ───────────────────────────────────────────────────
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            var key = builder.Configuration["Jwt:SigningKey"]
+                ?? throw new InvalidOperationException("Jwt:SigningKey is required");
+
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer    = true,
+                ValidIssuer       = builder.Configuration["Jwt:Issuer"],
+                ValidateAudience  = true,
+                ValidAudience     = builder.Configuration["Jwt:Audience"],
+                ValidateLifetime  = true,
+                IssuerSigningKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+                ClockSkew         = TimeSpan.FromSeconds(30)
+            };
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("CustomerOrAdmin", policy =>
+            policy.RequireRole("customer", "admin"));
+
+        options.AddPolicy("AdminOnly", policy =>
+            policy.RequireRole("admin"));
+    });
+
     // ─── FluentValidation ────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
@@ -289,6 +321,7 @@ try
         };
     });
 
+    app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
 
