@@ -1,7 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Identity;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Orders.API.Application.Behaviors;
 using Orders.API.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -88,9 +91,17 @@ try
     // ─── Infraestructura ──────────────────────────────────────────────────────────
     builder.Services.AddOrdersInfrastructure(builder.Configuration);
 
-    // ─── MediatR ─────────────────────────────────────────────────────────────
+    // ─── FluentValidation ────────────────────────────────────────────────────
+    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+    // ─── MediatR + Pipeline Behaviors ────────────────────────────────────────
     builder.Services.AddMediatR(cfg =>
-        cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    {
+        cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+        cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
+    });
 
     // ─── Controllers + JSON ───────────────────────────────────────────────────
     builder.Services

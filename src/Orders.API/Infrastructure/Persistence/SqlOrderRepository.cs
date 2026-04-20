@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Domain.Interfaces;
+using Orders.API.Domain.ValueObjects;
 
 namespace Orders.API.Infrastructure.Persistence;
 
@@ -29,6 +30,34 @@ public class SqlOrderRepository : IOrderRepository
             .Where(o => o.Status == Domain.ValueObjects.OrderStatus.Pending)
             .OrderBy(o => o.CreatedAt)
             .ToListAsync(ct);
+
+    public async Task<(IReadOnlyList<Order> Items, int TotalCount)> ListAsync(
+        string? status,
+        Guid?   customerId,
+        int     page,
+        int     pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _dbContext.Orders.Include(o => o.Lines).AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            var orderStatus = OrderStatus.FromString(status);
+            query = query.Where(o => o.Status == orderStatus);
+        }
+
+        if (customerId.HasValue)
+            query = query.Where(o => o.CustomerId == customerId.Value);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
 
     public async Task SaveAsync(Order order, CancellationToken ct = default)
     {
