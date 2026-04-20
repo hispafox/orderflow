@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Orders.API.Tests.Shared.Fixtures;
 
@@ -17,13 +18,14 @@ public class OrdersEndpointTests
     }
 
     [Fact]
-    public async Task GetAll_ShouldReturn200WithEmptyList()
+    public async Task GetAll_ShouldReturn200WithEmptyItems()
     {
         var response = await _client.GetAsync("/api/orders");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var orders = await response.Content.ReadFromJsonAsync<List<object>>();
-        orders.Should().NotBeNull().And.BeEmpty();
+        var body = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        doc.RootElement.GetProperty("items").GetArrayLength().Should().Be(0);
     }
 
     [Fact]
@@ -40,7 +42,24 @@ public class OrdersEndpointTests
         var request = new
         {
             customerId = Guid.NewGuid(),
-            items = new[] { new { productId = Guid.NewGuid(), quantity = 2 } }
+            items = new[]
+            {
+                new
+                {
+                    productId   = Guid.NewGuid(),
+                    productName = "MacBook Pro 16",
+                    quantity    = 1,
+                    unitPrice   = 1999.99m,
+                    currency    = "EUR"
+                }
+            },
+            shippingAddress = new
+            {
+                street  = "Gran Vía 28",
+                city    = "Madrid",
+                zipCode = "28013",
+                country = "ES"
+            }
         };
 
         var response = await _client.PostAsJsonAsync("/api/orders", request);

@@ -1,37 +1,98 @@
-@baseUrl = https://localhost:7153
+@baseUrl    = https://localhost:7153
+@orderId    = 00000000-0000-0000-0000-000000000000
+@customerId = 3fa85f64-5717-4562-b3fc-2c963f66afa6
 
-### GET todos los pedidos
+### GET — listar todos los pedidos
 GET {{baseUrl}}/api/orders
 Accept: application/json
 
 ###
 
-### GET pedido por ID (devuelve 404 en skeleton)
-GET {{baseUrl}}/api/orders/3fa85f64-5717-4562-b3fc-2c963f66afa6
+### GET — listar con filtros y paginación
+GET {{baseUrl}}/api/orders?status=pending&page=1&pageSize=10
 Accept: application/json
 
 ###
 
-### POST crear pedido
+### GET — detalle de un pedido
+GET {{baseUrl}}/api/orders/{{orderId}}
+Accept: application/json
+
+###
+
+### POST — crear pedido
 POST {{baseUrl}}/api/orders
 Content-Type: application/json
 
 {
-  "customerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "customerId": "{{customerId}}",
   "items": [
     {
       "productId": "a4b5c6d7-e8f9-0123-4567-89abcdef0123",
-      "quantity": 2
+      "productName": "MacBook Pro 16\" M4",
+      "quantity": 1,
+      "unitPrice": 1999.99,
+      "currency": "EUR"
+    },
+    {
+      "productId": "b5c6d7e8-f9a0-1234-5678-9abcdef01234",
+      "productName": "Magic Mouse",
+      "quantity": 2,
+      "unitPrice": 79.99,
+      "currency": "EUR"
     }
-  ]
+  ],
+  "shippingAddress": {
+    "street": "Gran Vía 28",
+    "city": "Madrid",
+    "zipCode": "28013",
+    "country": "ES"
+  }
 }
 
 ###
 
-### Health check (registrado por ServiceDefaults)
+### POST — confirmar pedido
+POST {{baseUrl}}/api/orders/{{orderId}}/confirm
+
+###
+
+### POST — cancelar pedido
+POST {{baseUrl}}/api/orders/{{orderId}}/cancel
+Content-Type: application/json
+
+{
+  "reason": "Customer requested cancellation"
+}
+
+###
+
+### POST — body inválido → debe devolver 400
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "00000000-0000-0000-0000-000000000000",
+  "items": [],
+  "shippingAddress": {
+    "street": "",
+    "city": "Madrid",
+    "zipCode": "28013",
+    "country": "INVALID"
+  }
+}
+
+###
+
+### GET — pedido inexistente → debe devolver 404
+GET {{baseUrl}}/api/orders/99999999-9999-9999-9999-999999999999
+
+###
+
+### Health check
 GET {{baseUrl}}/health
 
 ###
 
-### OpenAPI spec (solo en Development)
+### OpenAPI spec
 GET {{baseUrl}}/openapi/v1.json
