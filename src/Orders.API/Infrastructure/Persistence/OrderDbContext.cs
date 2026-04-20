@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Domain.ValueObjects;
+using Orders.API.Infrastructure.Audit;
 using Orders.API.Sagas;
 
 namespace Orders.API.Infrastructure.Persistence;
@@ -9,7 +10,8 @@ public class OrderDbContext : DbContext
 {
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options) { }
 
-    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Order>         Orders    => Set<Order>();
+    public DbSet<AuditLogEntry> AuditLogs => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +84,27 @@ public class OrderDbContext : DbContext
 
             entity.Property(s => s.ReservationTimeoutTokenId)
                   .IsRequired(false);
+        });
+
+        modelBuilder.Entity<AuditLogEntry>(entity =>
+        {
+            entity.ToTable("AuditLogs", "orders");
+            entity.HasKey(e => e.Id);
+
+            entity.HasIndex(e => e.UserId)
+                  .HasDatabaseName("IX_AuditLogs_UserId");
+            entity.HasIndex(e => e.Timestamp)
+                  .HasDatabaseName("IX_AuditLogs_Timestamp");
+            entity.HasIndex(e => new { e.ResourceType, e.ResourceId })
+                  .HasDatabaseName("IX_AuditLogs_Resource");
+
+            entity.Property(e => e.Action).HasMaxLength(100);
+            entity.Property(e => e.UserId).HasMaxLength(100);
+            entity.Property(e => e.UserEmail).HasMaxLength(320);
+            entity.Property(e => e.ResourceType).HasMaxLength(100);
+            entity.Property(e => e.ResourceId).HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.Property(e => e.FailureReason).HasMaxLength(500);
         });
     }
 }

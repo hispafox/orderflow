@@ -71,7 +71,10 @@ obj/Debug/net10.0/
  Gateway.API.AssemblyInfo.cs
  Gateway.API.GlobalUsings.g.cs
 Program.cs
-Services/JwtService.cs
+Services/
+ IAuthFailureCounter.cs
+ JwtService.cs
+ MemoryAuthFailureCounter.cs
 
 [metadataReferences]
 ../../../../../Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.2/ref/net10.0/

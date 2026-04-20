@@ -72,6 +72,7 @@ API/
   CorrelationIdMiddleware.cs
   DomainExceptionMiddleware.cs
 Application/Behaviors/
+ AuditBehavior.cs
  ITransactional.cs
  LoggingBehavior.cs
  TransactionBehavior.cs
@@ -86,6 +87,9 @@ Application/Commands/
  CreateOrderHandler.cs
 Application/
  Exceptions/OrderNotFoundException.cs
+ Interfaces/
+  IAuditable.cs
+  IAuditLogger.cs
  Queries/
   GetOrderByIdHandler.cs
   GetOrderByIdQuery.cs
@@ -112,6 +116,10 @@ Domain/
   Address.cs
   Money.cs
   OrderStatus.cs
+Infrastructure/Audit/
+ AuditEvent.cs
+ AuditLogEntry.cs
+ DatabaseAuditLogger.cs
 Infrastructure/Http/
  CorrelationIdDelegatingHandler.cs
  IProductsApi.cs
@@ -123,6 +131,8 @@ Infrastructure/Persistence/Migrations/
  20260420054412_InitialOrderSchema.Designer.cs
  20260420093230_AddOrderSagaState.cs
  20260420093230_AddOrderSagaState.Designer.cs
+ 20260420162808_AddAuditLogs.cs
+ 20260420162808_AddAuditLogs.Designer.cs
  OrderDbContextModelSnapshot.cs
 Infrastructure/Persistence/
  OrderDbContext.cs

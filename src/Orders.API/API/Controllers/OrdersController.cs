@@ -72,7 +72,7 @@ public class OrdersController : ControllerBase
         }
 
         if (!IsAdmin() && order.CustomerId.ToString() != GetUserId())
-            return Forbid();
+            return NotFound();  // 404 — previene enumeración de recursos (no revelar que existe)
 
         return Ok(order);
     }

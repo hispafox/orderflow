@@ -66,6 +66,7 @@ Integration/
   OrdersEndpointTests.cs
   SmokeTests.cs
  Infrastructure/OrderRepositoryTests.cs
+ Security/SecurityTests.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
  Orders.API.Tests.AssemblyInfo.cs

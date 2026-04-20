@@ -272,12 +272,18 @@ try
     // ─── FluentValidation ────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
+    // ─── Audit Logger ────────────────────────────────────────────────────────
+    builder.Services.AddScoped<Orders.API.Application.Interfaces.IAuditLogger,
+        Orders.API.Infrastructure.Audit.DatabaseAuditLogger>();
+
     // ─── MediatR + Pipeline Behaviors ────────────────────────────────────────
+    // Orden: Logging → Validation → Audit → Transaction → Handler
     builder.Services.AddMediatR(cfg =>
     {
         cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
         cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
         cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
     });
 

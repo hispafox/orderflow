@@ -2,11 +2,6 @@ using FluentValidation;
 
 namespace Orders.API.Application.Commands;
 
-/// <summary>
-/// Validator de FluentValidation para CreateOrderCommand.
-/// Se ejecuta automáticamente en el ValidationBehavior antes de llegar al handler.
-/// Un validator por Command — nunca se mezclan reglas entre Commands.
-/// </summary>
 public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 {
     public CreateOrderCommandValidator()
@@ -15,33 +10,35 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
             .NotEmpty().WithMessage("CustomerId is required");
 
         RuleFor(x => x.CustomerEmail)
-            .NotEmpty().WithMessage("CustomerEmail is required")
-            .EmailAddress().WithMessage("CustomerEmail must be a valid email address");
+            .NotEmpty()
+            .EmailAddress()
+            .MaximumLength(256)
+            .Matches(@"^[^<>\r\n\t;]+$")
+            .WithMessage("Invalid email format or characters");
 
         RuleFor(x => x.Items)
             .NotEmpty().WithMessage("Order must have at least one item")
             .Must(items => items.Count <= 50)
-            .WithMessage("Order cannot exceed 50 items");
+            .WithMessage("Maximum 50 items per order");
 
         RuleForEach(x => x.Items).ChildRules(item =>
         {
             item.RuleFor(i => i.ProductId)
-                .NotEmpty().WithMessage("ProductId is required");
+                .NotEmpty();
 
             item.RuleFor(i => i.ProductName)
                 .NotEmpty()
-                .MaximumLength(200);
+                .MaximumLength(200)
+                .Matches(@"^[^<>""'&]+$")
+                .WithMessage("ProductName contains invalid characters");
 
             item.RuleFor(i => i.Quantity)
-                .GreaterThan(0)
-                .LessThanOrEqualTo(1000);
+                .GreaterThan(0).WithMessage("Quantity must be at least 1")
+                .LessThanOrEqualTo(999).WithMessage("Maximum quantity is 999");
 
             item.RuleFor(i => i.UnitPrice)
-                .GreaterThan(0).WithMessage("Unit price must be positive");
-
-            item.RuleFor(i => i.Currency)
-                .NotEmpty()
-                .Length(3).WithMessage("Currency must be a 3-letter ISO code");
+                .GreaterThan(0.01m).WithMessage("UnitPrice must be greater than 0")
+                .LessThanOrEqualTo(99_999.99m).WithMessage("UnitPrice exceeds maximum allowed");
         });
 
         RuleFor(x => x.ShippingAddress)
@@ -49,12 +46,29 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 
         When(x => x.ShippingAddress is not null, () =>
         {
-            RuleFor(x => x.ShippingAddress.Street) .NotEmpty().MaximumLength(200);
-            RuleFor(x => x.ShippingAddress.City)   .NotEmpty().MaximumLength(100);
-            RuleFor(x => x.ShippingAddress.ZipCode).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.ShippingAddress.Street)
+                .NotEmpty()
+                .MaximumLength(200)
+                .Matches(@"^[\w\s\.,\-À-ÿ]+$")
+                .WithMessage("Street contains invalid characters");
+
+            RuleFor(x => x.ShippingAddress.City)
+                .NotEmpty()
+                .MaximumLength(100)
+                .Matches(@"^[\w\s\-À-ÿ]+$")
+                .WithMessage("City contains invalid characters");
+
+            RuleFor(x => x.ShippingAddress.ZipCode)
+                .NotEmpty()
+                .MaximumLength(20)
+                .Matches(@"^[\w\s\-]+$")
+                .WithMessage("ZipCode contains invalid characters");
+
             RuleFor(x => x.ShippingAddress.Country)
                 .NotEmpty()
-                .Length(2).WithMessage("Country must be a 2-letter ISO code");
+                .MaximumLength(2)
+                .Matches(@"^[A-Z]{2}$")
+                .WithMessage("Country must be a 2-letter ISO code (e.g. ES, DE)");
         });
     }
 }
