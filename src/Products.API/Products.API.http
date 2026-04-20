@@ -1,0 +1,86 @@
+@baseUrl   = https://localhost:7200
+@productId = a4b5c6d7-e8f9-0123-4567-89abcdef0123
+
+### GET — listar todos los productos
+GET {{baseUrl}}/api/products
+Accept: application/json
+
+###
+
+### GET — filtrar con búsqueda y paginación
+GET {{baseUrl}}/api/products?search=macbook&page=1&pageSize=10
+Accept: application/json
+
+###
+
+### GET — detalle de producto
+GET {{baseUrl}}/api/products/{{productId}}
+Accept: application/json
+
+###
+
+### GET — producto inexistente → 404
+GET {{baseUrl}}/api/products/99999999-9999-9999-9999-999999999999
+
+###
+
+### POST — crear producto
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "MacBook Pro 16\" M4 Max",
+  "description": "El MacBook Pro más potente con chip M4 Max",
+  "price": 3999.99,
+  "currency": "EUR",
+  "initialStock": 25,
+  "categoryId": "c1b2a3d4-e5f6-0123-4567-89abcdef0123"
+}
+
+###
+
+### POST — crear producto inválido → 400 ValidationProblem
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "A",
+  "price": -5,
+  "currency": "INVALID",
+  "initialStock": -1,
+  "categoryId": "00000000-0000-0000-0000-000000000000"
+}
+
+###
+
+### PUT — actualizar stock
+PUT {{baseUrl}}/api/products/{{productId}}/stock
+Content-Type: application/json
+
+{ "newStock": 100 }
+
+###
+
+### POST — reservar stock
+POST {{baseUrl}}/api/products/{{productId}}/reserve
+Content-Type: application/json
+
+{
+  "orderId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "quantity": 2
+}
+
+###
+
+### Health check
+GET {{baseUrl}}/health
+
+###
+
+### OpenAPI spec
+GET {{baseUrl}}/openapi/v1.json
+
+###
+
+### Scalar UI
+# GET {{baseUrl}}/scalar/v1
