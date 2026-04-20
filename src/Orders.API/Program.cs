@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Azure.Identity;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Orders.API.Infrastructure;
@@ -86,9 +88,29 @@ try
     // ─── Infraestructura ──────────────────────────────────────────────────────────
     builder.Services.AddOrdersInfrastructure(builder.Configuration);
 
-    // ─── Servicios ────────────────────────────────────────────────────────────
-    builder.Services.AddControllers();
-    builder.Services.AddOpenApi();
+    // ─── MediatR ─────────────────────────────────────────────────────────────
+    builder.Services.AddMediatR(cfg =>
+        cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+    // ─── Controllers + JSON ───────────────────────────────────────────────────
+    builder.Services
+        .AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy   = JsonNamingPolicy.CamelCase;
+            options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+
+    builder.Services.AddOpenApi(options =>
+    {
+        options.AddDocumentTransformer((document, _, _) =>
+        {
+            document.Info.Title       = "Orders API";
+            document.Info.Description = "API para gestión de pedidos de TechShop / OrderFlow";
+            return Task.CompletedTask;
+        });
+    });
 
     // ─── Azure Key Vault en producción ────────────────────────────────────────
     if (!builder.Environment.IsDevelopment())
@@ -105,6 +127,8 @@ try
     var app = builder.Build();
 
     // ─── Pipeline ─────────────────────────────────────────────────────────────
+    app.UseMiddleware<DomainExceptionMiddleware>(); // ← PRIMERO: captura excepciones de dominio
+
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
         app.MapOpenApi();
 
