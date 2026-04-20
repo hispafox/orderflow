@@ -13,26 +13,20 @@ public class ListOrdersHandler : IRequestHandler<ListOrdersQuery, PagedResult<Or
     public ListOrdersHandler(IOrderRepository repository) => _repository = repository;
 
     public async Task<PagedResult<OrderSummaryDto>> Handle(
-        ListOrdersQuery query,
+        ListOrdersQuery   query,
         CancellationToken ct)
     {
-        IReadOnlyList<Domain.Entities.Order> orders;
-
-        if (query.CustomerId.HasValue)
-            orders = await _repository.GetByCustomerIdAsync(query.CustomerId.Value, ct);
-        else
-            orders = await _repository.GetPendingAsync(ct);
-
-        var pagedItems = orders
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .Select(o => o.ToSummaryDto())
-            .ToList();
+        var (orders, total) = await _repository.ListAsync(
+            status:     query.Status,
+            customerId: query.CustomerId,
+            page:       query.Page,
+            pageSize:   query.PageSize,
+            ct:         ct);
 
         return new PagedResult<OrderSummaryDto>
         {
-            Items      = pagedItems,
-            TotalCount = orders.Count,
+            Items      = orders.Select(o => o.ToSummaryDto()).ToList(),
+            TotalCount = total,
             Page       = query.Page,
             PageSize   = query.PageSize
         };

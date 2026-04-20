@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Orders.API.Application.Exceptions;
 using Orders.API.Domain.Exceptions;
@@ -5,9 +6,13 @@ using Orders.API.Domain.Exceptions;
 namespace Orders.API.API.Middleware;
 
 /// <summary>
-/// Captura excepciones del dominio y las convierte en respuestas HTTP semánticas.
-/// - DomainException        → 422 Unprocessable Entity
-/// - OrderNotFoundException → 404 Not Found
+/// Captura excepciones del dominio y de la capa de aplicación
+/// y las convierte en respuestas HTTP semánticas.
+/// Debe ser el primer middleware del pipeline.
+///
+/// - ValidationException    → 422 con detalles de cada campo
+/// - DomainException        → 422 con el mensaje de la regla de negocio
+/// - OrderNotFoundException → 404
 /// </summary>
 public class DomainExceptionMiddleware
 {
@@ -27,6 +32,28 @@ public class DomainExceptionMiddleware
         try
         {
             await _next(context);
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning(
+                "Validation failed: {Errors}",
+                string.Join(", ", ex.Errors.Select(e => e.ErrorMessage)));
+
+            context.Response.StatusCode = StatusCodes.Status422UnprocessableEntity;
+
+            var errors = ex.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray());
+
+            await context.Response.WriteAsJsonAsync(
+                new ValidationProblemDetails(errors)
+                {
+                    Status = StatusCodes.Status422UnprocessableEntity,
+                    Title  = "Validation failed",
+                    Type   = "https://orderflow.api/errors/validation"
+                });
         }
         catch (OrderNotFoundException ex)
         {
