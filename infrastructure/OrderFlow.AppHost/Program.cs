@@ -6,9 +6,16 @@ var sqlServer = builder.AddConnectionString("sqlserver");
 // RabbitMQ local — sin Docker
 var messaging = builder.AddConnectionString("messaging");
 
-// Servicio Orders.API
-builder.AddProject<Projects.Orders_API>("orders-api")
+// Products.API
+var products = builder
+    .AddProject<Projects.Products_API>("products-api")
     .WithReference(sqlServer)
     .WithReference(messaging);
+
+// Orders.API — referencia a Products para Service Discovery
+builder.AddProject<Projects.Orders_API>("orders-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging)
+    .WithReference(products);
 
 builder.Build().Run();

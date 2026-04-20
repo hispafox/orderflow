@@ -3,4 +3,12 @@
     <Project Path="infrastructure/OrderFlow.AppHost/OrderFlow.AppHost.csproj" />
     <Project Path="infrastructure/OrderFlow.ServiceDefaults/OrderFlow.ServiceDefaults.csproj" />
   </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Orders.API/Orders.API.csproj" />
+    <Project Path="src/Products.API/Products.API.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Orders.API.Tests/Orders.API.Tests.csproj" />
+    <Project Path="tests/Products.API.Tests/Products.API.Tests.csproj" />
+  </Folder>
 </Solution>
