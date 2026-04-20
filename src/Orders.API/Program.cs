@@ -1,5 +1,6 @@
 using Azure.Identity;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Orders.API.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
@@ -81,6 +82,9 @@ try
             name: "rabbitmq",
             failureStatus: HealthStatus.Degraded,
             tags: ["ready", "messaging"]);
+
+    // ─── Infraestructura ──────────────────────────────────────────────────────────
+    builder.Services.AddOrdersInfrastructure(builder.Configuration);
 
     // ─── Servicios ────────────────────────────────────────────────────────────
     builder.Services.AddControllers();

@@ -62,10 +62,37 @@ Application/Settings/
  OrdersSettings.cs
  OrdersSettingsValidator.cs
 Controllers/OrdersController.cs
-Infrastructure/Telemetry/
- OpenTelemetryEnricher.cs
- OrdersMetrics.cs
- OrdersTelemetry.cs
+Domain/Entities/
+ Order.cs
+ OrderLine.cs
+Domain/Events/
+ IDomainEvent.cs
+ OrderCancelledEvent.cs
+ OrderConfirmedEvent.cs
+ OrderCreatedEvent.cs
+ OrderDeliveredEvent.cs
+ OrderShippedEvent.cs
+Domain/
+ Exceptions/DomainException.cs
+ Guards.cs
+ Interfaces/IOrderRepository.cs
+ ValueObjects/
+  Address.cs
+  Money.cs
+  OrderStatus.cs
+Infrastructure/Persistence/Migrations/
+ 20260420054412_InitialOrderSchema.cs
+ 20260420054412_InitialOrderSchema.Designer.cs
+ OrderDbContextModelSnapshot.cs
+Infrastructure/Persistence/
+ OrderDbContext.cs
+ SqlOrderRepository.cs
+Infrastructure/
+ ServiceCollectionExtensions.cs
+ Telemetry/
+  OpenTelemetryEnricher.cs
+  OrdersMetrics.cs
+  OrdersTelemetry.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
  Orders.API.AssemblyInfo.cs
@@ -392,11 +419,16 @@ Program.cs
  azure.security.keyvault.secrets/4.9.0/lib/net10.0/Azure.Security.KeyVault.Secrets.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
- microsoft.data.sqlclient/5.2.2/ref/net8.0/Microsoft.Data.SqlClient.dll
+ microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
+ microsoft.data.sqlclient/6.1.1/ref/net9.0/Microsoft.Data.SqlClient.dll
+ microsoft.entityframeworkcore.abstractions/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+ microsoft.entityframeworkcore.relational/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.Relational.dll
+ microsoft.entityframeworkcore.sqlserver/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.SqlServer.dll
+ microsoft.entityframeworkcore/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.dll
  microsoft.extensions.ambientmetadata.application/10.5.0/lib/net10.0/Microsoft.Extensions.AmbientMetadata.Application.dll
  microsoft.extensions.compliance.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Compliance.Abstractions.dll
  microsoft.extensions.dependencyinjection.autoactivation/10.5.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll
- microsoft.extensions.dependencymodel/10.0.0/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
+ microsoft.extensions.dependencymodel/10.0.6/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
  microsoft.extensions.http.diagnostics/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Diagnostics.dll
  microsoft.extensions.http.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Resilience.dll
@@ -408,11 +440,11 @@ Program.cs
  microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
  microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
- microsoft.identitymodel.jsonwebtokens/6.35.0/lib/net6.0/Microsoft.IdentityModel.JsonWebTokens.dll
- microsoft.identitymodel.logging/6.35.0/lib/net6.0/Microsoft.IdentityModel.Logging.dll
- microsoft.identitymodel.protocols.openidconnect/6.35.0/lib/net6.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
- microsoft.identitymodel.protocols/6.35.0/lib/net6.0/Microsoft.IdentityModel.Protocols.dll
- microsoft.identitymodel.tokens/6.35.0/lib/net6.0/Microsoft.IdentityModel.Tokens.dll
+ microsoft.identitymodel.jsonwebtokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.JsonWebTokens.dll
+ microsoft.identitymodel.logging/7.7.1/lib/net8.0/Microsoft.IdentityModel.Logging.dll
+ microsoft.identitymodel.protocols.openidconnect/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+ microsoft.identitymodel.protocols/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.dll
+ microsoft.identitymodel.tokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.Tokens.dll
  microsoft.openapi/2.0.0/lib/net8.0/Microsoft.OpenApi.dll
  microsoft.sqlserver.server/1.0.0/lib/netstandard2.0/Microsoft.SqlServer.Server.dll
  opentelemetry.api.providerbuilderextensions/1.15.2/lib/net10.0/OpenTelemetry.Api.ProviderBuilderExtensions.dll
@@ -441,9 +473,10 @@ Program.cs
  serilog.sinks.file/7.0.0/lib/net9.0/Serilog.Sinks.File.dll
  serilog/4.3.0/lib/net9.0/Serilog.dll
  system.clientmodel/1.10.0/lib/net10.0/System.ClientModel.dll
- system.identitymodel.tokens.jwt/6.35.0/lib/net6.0/System.IdentityModel.Tokens.Jwt.dll
+ system.identitymodel.tokens.jwt/7.7.1/lib/net8.0/System.IdentityModel.Tokens.Jwt.dll
  system.memory.data/10.0.3/lib/net10.0/System.Memory.Data.dll
- system.security.cryptography.protecteddata/8.0.0/lib/net8.0/System.Security.Cryptography.ProtectedData.dll
+ system.security.cryptography.pkcs/9.0.4/lib/net9.0/System.Security.Cryptography.Pkcs.dll
+ system.security.cryptography.protecteddata/9.0.4/lib/net9.0/System.Security.Cryptography.ProtectedData.dll
 
 [analyzerReferences]
 ../../../../../Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.2/analyzers/dotnet/cs/
@@ -472,6 +505,10 @@ Program.cs
  Microsoft.CodeAnalysis.NetAnalyzers.dll
 <NUGET>/
  microsoft.aspnetcore.openapi/10.0.6/analyzers/dotnet/cs/Microsoft.AspNetCore.OpenApi.SourceGenerators.dll
+ microsoft.codeanalysis.analyzers/3.11.0/analyzers/dotnet/cs/
+  Microsoft.CodeAnalysis.Analyzers.dll
+  Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+ microsoft.entityframeworkcore.analyzers/10.0.6/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/analyzers/dotnet/cs/
   Microsoft.Gen.Logging.dll
   Microsoft.Gen.Metrics.dll
