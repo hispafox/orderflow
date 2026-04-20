@@ -347,6 +347,7 @@ Shared/Fixtures/
  WindowsBase.dll
 ../../
  infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
+ shared/OrderFlow.Contracts/obj/Debug/net10.0/ref/OrderFlow.Contracts.dll
  src/Products.API/obj/Debug/net10.0/ref/Products.API.dll
 <NUGET>/
  aspnetcore.healthchecks.sqlserver/9.0.0/lib/net8.0/HealthChecks.SqlServer.dll
@@ -355,6 +356,9 @@ Shared/Fixtures/
  fluentassertions/8.9.0/lib/net6.0/FluentAssertions.dll
  fluentvalidation.dependencyinjectionextensions/11.12.0/lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/11.12.0/lib/net8.0/FluentValidation.dll
+ masstransit.abstractions/9.1.0/lib/net10.0/MassTransit.Abstractions.dll
+ masstransit.rabbitmq/9.1.0/lib/net10.0/MassTransit.RabbitMqTransport.dll
+ masstransit/9.1.0/lib/net10.0/MassTransit.dll
  microsoft.aspnetcore.mvc.testing/10.0.6/lib/net10.0/Microsoft.AspNetCore.Mvc.Testing.dll
  microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
  microsoft.aspnetcore.testhost/10.0.6/lib/net10.0/Microsoft.AspNetCore.TestHost.dll
@@ -441,6 +445,7 @@ Shared/Fixtures/
  polly.core/8.4.2/lib/net8.0/Polly.Core.dll
  polly.extensions/8.4.2/lib/net8.0/Polly.Extensions.dll
  polly.ratelimiting/8.4.2/lib/net8.0/Polly.RateLimiting.dll
+ rabbitmq.client/7.2.0/lib/net8.0/RabbitMQ.Client.dll
  scalar.aspnetcore/2.14.1/lib/net10.0/Scalar.AspNetCore.dll
  serilog.aspnetcore/10.0.0/lib/net10.0/Serilog.AspNetCore.dll
  serilog.enrichers.environment/3.0.1/lib/net8.0/Serilog.Enrichers.Environment.dll

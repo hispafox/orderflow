@@ -85,7 +85,9 @@ Unit/Domain/
  MoneyTests.cs
  OrderStatusTransitionTests.cs
  OrderTests.cs
-Unit/Infrastructure/ProductsClientTests.cs
+Unit/
+ Infrastructure/ProductsClientTests.cs
+ Sagas/OrderSagaTests.cs
 
 [metadataReferences]
 ../../../../../Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.2/ref/net10.0/
@@ -380,6 +382,7 @@ Unit/Infrastructure/ProductsClientTests.cs
  fluentvalidation.dependencyinjectionextensions/12.1.1/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
  fluentvalidation/12.1.1/lib/net8.0/FluentValidation.dll
  masstransit.abstractions/9.1.0/lib/net10.0/MassTransit.Abstractions.dll
+ masstransit.entityframeworkcore/9.1.0/lib/net10.0/MassTransit.EntityFrameworkCoreIntegration.dll
  masstransit.rabbitmq/9.1.0/lib/net10.0/MassTransit.RabbitMqTransport.dll
  masstransit/9.1.0/lib/net10.0/MassTransit.dll
  mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Domain.ValueObjects;
+using Orders.API.Sagas;
 
 namespace Orders.API.Infrastructure.Persistence;
 
@@ -61,6 +62,26 @@ public class OrderDbContext : DbContext
                 money.Property(m => m.Amount)  .HasColumnName("UnitPriceAmount")  .HasPrecision(18, 2).IsRequired();
                 money.Property(m => m.Currency).HasColumnName("UnitPriceCurrency").HasMaxLength(3)     .IsRequired();
             });
+        });
+
+        // ─── OrderSagaState — persistencia de la Saga ────────────────────────────────
+        modelBuilder.Entity<OrderSagaState>(entity =>
+        {
+            entity.ToTable("OrderSagaState", schema: "orders");
+            entity.HasKey(s => s.CorrelationId);
+
+            entity.Property(s => s.CurrentState).HasMaxLength(64);
+            entity.Property(s => s.CustomerEmail).HasMaxLength(320);
+            entity.Property(s => s.Currency).HasMaxLength(3);
+            entity.Property(s => s.FailureReason).HasMaxLength(500);
+            entity.Property(s => s.Amount).HasPrecision(18, 2);
+
+            entity.Property(s => s.RowVersion)
+                  .IsRowVersion()
+                  .IsConcurrencyToken();
+
+            entity.Property(s => s.ReservationTimeoutTokenId)
+                  .IsRequired(false);
         });
     }
 }

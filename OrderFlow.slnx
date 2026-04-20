@@ -9,6 +9,7 @@
   <Folder Name="/src/">
     <Project Path="src/Notifications.API/Notifications.API.csproj" />
     <Project Path="src/Orders.API/Orders.API.csproj" />
+    <Project Path="src/Payments.API/Payments.API.csproj" />
     <Project Path="src/Products.API/Products.API.csproj" />
   </Folder>
   <Folder Name="/tests/">

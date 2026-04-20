@@ -1,4 +1,5 @@
 using FluentValidation;
+using MassTransit;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -54,6 +55,25 @@ try
             sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "products")));
 
     builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
+
+    // ─── MassTransit + RabbitMQ ───────────────────────────────────────────────
+    builder.Services.AddMassTransit(x =>
+    {
+        x.AddConsumers(typeof(Program).Assembly);
+
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+
+            cfg.UseMessageRetry(r => r.Exponential(
+                retryLimit:    5,
+                minInterval:   TimeSpan.FromSeconds(1),
+                maxInterval:   TimeSpan.FromSeconds(30),
+                intervalDelta: TimeSpan.FromSeconds(2)));
+
+            cfg.ConfigureEndpoints(context);
+        });
+    });
 
     // ─── Authorization ───────────────────────────────────────────────────────
     builder.Services.AddAuthorization();

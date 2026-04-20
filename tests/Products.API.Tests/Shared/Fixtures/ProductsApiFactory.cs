@@ -1,7 +1,10 @@
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Products.API.Infrastructure.Persistence;
 
 namespace Products.API.Tests.Shared.Fixtures;
@@ -24,8 +27,16 @@ public class ProductsApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:sqlserver"] = ConnectionString
+                ["ConnectionStrings:sqlserver"] = ConnectionString,
+                ["ConnectionStrings:messaging"] = "amqp://guest:guest@localhost:5672"
             });
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            // Replace MassTransit transport with in-memory test bus (no RabbitMQ needed)
+            services.RemoveAll<IBusControl>();
+            services.AddMassTransitTestHarness();
         });
     }
 

@@ -56,10 +56,15 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
+Commands/
+ ProcessPayment.cs
+ ReleaseStock.cs
+ ReserveStock.cs
 Events/Orders/
  OrderCancelled.cs
  OrderConfirmed.cs
  OrderCreated.cs
+ OrderFailed.cs
 Events/
  Payments/PaymentProcessed.cs
  Products/StockReserved.cs

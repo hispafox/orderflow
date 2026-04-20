@@ -34,4 +34,32 @@ public class FakeEmailService : IEmailService
 
         return Task.CompletedTask;
     }
+
+    public Task SendPaymentConfirmationAsync(
+        string            email,
+        Guid              orderId,
+        Guid              paymentId,
+        decimal           total,
+        string            currency,
+        CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "[EMAIL SIMULADO] Pago confirmado. Para: {Email} | " +
+            "Pedido: {OrderId} | PaymentId: {PaymentId} | Total: {Total} {Currency}",
+            email, orderId, paymentId, total, currency);
+        return Task.CompletedTask;
+    }
+
+    public Task SendOrderFailedAsync(
+        string            email,
+        Guid              orderId,
+        string            reason,
+        CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "[EMAIL SIMULADO] Pedido fallido. Para: {Email} | " +
+            "Pedido: {OrderId} | Razón: {Reason}",
+            email, orderId, reason);
+        return Task.CompletedTask;
+    }
 }

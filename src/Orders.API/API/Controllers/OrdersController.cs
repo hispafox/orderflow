@@ -1,10 +1,13 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Orders.API.API.DTOs;
 using Orders.API.API.DTOs.Requests;
 using Orders.API.API.DTOs.Responses;
 using Orders.API.Application.Commands;
 using Orders.API.Application.Queries;
+using Orders.API.Infrastructure.Persistence;
+using Orders.API.Sagas;
 
 namespace Orders.API.API.Controllers;
 
@@ -108,5 +111,31 @@ public class OrdersController : ControllerBase
     {
         await _mediator.Send(new CancelOrderCommand(id, request.Reason), ct);
         return NoContent();
+    }
+
+    /// <summary>Devuelve el estado actual de la Saga para un pedido.</summary>
+    [HttpGet("{id:guid}/saga-state")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSagaState(
+        Guid id,
+        [FromServices] OrderDbContext dbContext,
+        CancellationToken ct = default)
+    {
+        var state = await dbContext.Set<OrderSagaState>()
+            .FirstOrDefaultAsync(s => s.CorrelationId == id, ct);
+
+        if (state is null)
+            return NotFound();
+
+        return Ok(new
+        {
+            OrderId       = state.CorrelationId,
+            State         = state.CurrentState,
+            PaymentId     = state.PaymentId,
+            FailureReason = state.FailureReason,
+            CreatedAt     = state.CreatedAt,
+            CompletedAt   = state.CompletedAt
+        });
     }
 }

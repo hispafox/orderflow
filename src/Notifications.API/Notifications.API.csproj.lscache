@@ -57,7 +57,10 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-Consumers/OrderCreatedConsumer.cs
+Consumers/
+ OrderConfirmedConsumer.cs
+ OrderCreatedConsumer.cs
+ OrderFailedConsumer.cs
 Domain/Notification.cs
 Infrastructure/NotificationDbContext.cs
 Migrations/

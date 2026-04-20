@@ -12,13 +12,19 @@ var products = builder
     .WithReference(sqlServer)
     .WithReference(messaging);
 
-// Notifications.API — consumer de OrderCreated
+// Notifications.API — consumers de OrderCreated, OrderConfirmed, OrderFailed
 var notifications = builder
     .AddProject<Projects.Notifications_API>("notifications-api")
     .WithReference(sqlServer)
     .WithReference(messaging);
 
-// Orders.API — referencia a Products para Service Discovery
+// Payments.API — consumer de ProcessPayment
+builder
+    .AddProject<Projects.Payments_API>("payments-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging);
+
+// Orders.API — Saga orchestrator, referencia a Products para Service Discovery
 builder.AddProject<Projects.Orders_API>("orders-api")
     .WithReference(sqlServer)
     .WithReference(messaging)

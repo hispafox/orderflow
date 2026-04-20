@@ -4,12 +4,15 @@ using System.Text.Json.Serialization;
 using Azure.Identity;
 using FluentValidation;
 using MassTransit;
+using MassTransit.EntityFrameworkCoreIntegration;
 using MediatR;
+using Orders.API.Sagas;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Http.Resilience;
 using Orders.API.Application.Behaviors;
 using Orders.API.Infrastructure;
 using Orders.API.Infrastructure.Http;
+using Orders.API.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
@@ -182,10 +185,16 @@ try
                 .AddTimeout(TimeSpan.FromSeconds(5));
         });
 
-    // ─── MassTransit + RabbitMQ ───────────────────────────────────────────────
+    // ─── MassTransit + RabbitMQ + Saga ───────────────────────────────────────────
     builder.Services.AddMassTransit(x =>
     {
-        // Orders.API solo PUBLICA — sin consumers propios en M4.2
+        x.AddSagaStateMachine<OrderSaga, OrderSagaState>()
+            .EntityFrameworkRepository(r =>
+            {
+                r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+                r.ExistingDbContext<OrderDbContext>();
+            });
+
         x.UsingRabbitMq((context, cfg) =>
         {
             cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));

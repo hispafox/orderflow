@@ -15,28 +15,39 @@ primary
 lastDtbSucceeded
 
 [properties]
-CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE -doc:"obj\Debug\net10.0\Orders.API.xml"
+AssemblyName=Payments.API
+CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>obj/project.assets.json
+RootNamespace=Payments.API
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../OrderFlow.slnx
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>bin/Debug/net10.0/Payments.API.dll
+TargetRefPath=<PATH>obj/Debug/net10.0/ref/Payments.API.dll
+TemporaryDependencyNodeTargetIdentifier=net10.0
 
 [commandLineArguments]
 /noconfig
 /unsafe-
 /checked-
-/nowarn:CS1591,1701,1702
+/nowarn:1701,1702,1701,1702
 /fullpaths
 /nostdlib+
 /errorreport:prompt
 /warn:10
-/doc:obj\Debug\net10.0\Orders.API.xml
 /define:TRACE;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
 /highentropyva+
 /nullable:enable
-/features:"InterceptorsNamespaces=;Microsoft.AspNetCore.OpenApi.Generated;;Microsoft.Extensions.Validation.Generated"
+/features:"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated"
 /debug+
 /debug:portable
 /filealign:512
 /optimize-
-/out:obj\Debug\net10.0\Orders.API.dll
-/refout:obj\Debug\net10.0\refint\Orders.API.dll
+/out:obj\Debug\net10.0\Payments.API.dll
+/refout:obj\Debug\net10.0\refint\Payments.API.dll
 /target:exe
 /warnaserror-
 /utf8output
@@ -46,90 +57,24 @@ CommandLineArgsForDesignTimeEvaluation=-langversion:14.0 -define:TRACE -doc:"obj
 /warnaserror+:NU1605,SYSLIB0011
 
 [sourceFiles]
-API/
- Controllers/OrdersController.cs
- DTOs/
-  OrderFilterParams.cs
-  PagedResult.cs
-  Requests/
-   CancelOrderRequest.cs
-   CreateOrderRequest.cs
-  Responses/OrderDto.cs
- Mappings/OrderMappings.cs
- Middleware/
-  CorrelationIdMiddleware.cs
-  DomainExceptionMiddleware.cs
-Application/Behaviors/
- ITransactional.cs
- LoggingBehavior.cs
- TransactionBehavior.cs
- ValidationBehavior.cs
-Application/Commands/
- CancelOrderCommand.cs
- CancelOrderHandler.cs
- ConfirmOrderCommand.cs
- ConfirmOrderHandler.cs
- CreateOrderCommand.cs
- CreateOrderCommandValidator.cs
- CreateOrderHandler.cs
-Application/
- Exceptions/OrderNotFoundException.cs
- Queries/
-  GetOrderByIdHandler.cs
-  GetOrderByIdQuery.cs
-  ListOrdersHandler.cs
-  ListOrdersQuery.cs
- Settings/
-  OrdersSettings.cs
-  OrdersSettingsValidator.cs
-Domain/Entities/
- Order.cs
- OrderLine.cs
-Domain/Events/
- IDomainEvent.cs
- OrderCancelledEvent.cs
- OrderConfirmedEvent.cs
- OrderCreatedEvent.cs
- OrderDeliveredEvent.cs
- OrderShippedEvent.cs
+Consumers/ProcessPaymentConsumer.cs
 Domain/
- Exceptions/DomainException.cs
- Guards.cs
- Interfaces/IOrderRepository.cs
- ValueObjects/
-  Address.cs
-  Money.cs
-  OrderStatus.cs
-Infrastructure/Http/
- CorrelationIdDelegatingHandler.cs
- IProductsApi.cs
- LoggingDelegatingHandler.cs
- ProductDetailDto.cs
- ProductsClient.cs
-Infrastructure/Persistence/Migrations/
- 20260420054412_InitialOrderSchema.cs
- 20260420054412_InitialOrderSchema.Designer.cs
- 20260420093230_AddOrderSagaState.cs
- 20260420093230_AddOrderSagaState.Designer.cs
- OrderDbContextModelSnapshot.cs
-Infrastructure/Persistence/
- OrderDbContext.cs
- SqlOrderRepository.cs
-Infrastructure/
- ServiceCollectionExtensions.cs
- Telemetry/
-  OpenTelemetryEnricher.cs
-  OrdersMetrics.cs
-  OrdersTelemetry.cs
+ Payment.cs
+ PaymentStatus.cs
+Infrastructure/PaymentsDbContext.cs
+Migrations/
+ 20260420093039_InitialPaymentSchema.cs
+ 20260420093039_InitialPaymentSchema.Designer.cs
+ PaymentsDbContextModelSnapshot.cs
 obj/Debug/net10.0/
  .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
- Orders.API.AssemblyInfo.cs
- Orders.API.GlobalUsings.g.cs
+ Payments.API.AssemblyInfo.cs
+ Payments.API.GlobalUsings.g.cs
 Program.cs
-Sagas/
- OrderSaga.cs
- OrderSagaState.cs
- OrderSagaTimeout.cs
+Services/
+ FakePaymentGateway.cs
+ IPaymentGateway.cs
+ PaymentResult.cs
 
 [metadataReferences]
 ../../../../../Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.2/ref/net10.0/
@@ -445,22 +390,12 @@ Sagas/
  infrastructure/OrderFlow.ServiceDefaults/obj/Debug/net10.0/ref/OrderFlow.ServiceDefaults.dll
  shared/OrderFlow.Contracts/obj/Debug/net10.0/ref/OrderFlow.Contracts.dll
 <NUGET>/
- aspnetcore.healthchecks.rabbitmq/9.0.0/lib/net8.0/HealthChecks.Rabbitmq.dll
- aspnetcore.healthchecks.sqlserver/9.0.0/lib/net8.0/HealthChecks.SqlServer.dll
- azure.core/1.53.0/lib/net10.0/Azure.Core.dll
- azure.extensions.aspnetcore.configuration.secrets/1.5.0/lib/net10.0/Azure.Extensions.AspNetCore.Configuration.Secrets.dll
- azure.identity/1.21.0/lib/net10.0/Azure.Identity.dll
- azure.security.keyvault.secrets/4.9.0/lib/net10.0/Azure.Security.KeyVault.Secrets.dll
- fluentvalidation.dependencyinjectionextensions/12.1.1/lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll
- fluentvalidation/12.1.1/lib/net8.0/FluentValidation.dll
+ azure.core/1.47.1/lib/net8.0/Azure.Core.dll
+ azure.identity/1.14.2/lib/net8.0/Azure.Identity.dll
  masstransit.abstractions/9.1.0/lib/net10.0/MassTransit.Abstractions.dll
- masstransit.entityframeworkcore/9.1.0/lib/net10.0/MassTransit.EntityFrameworkCoreIntegration.dll
  masstransit.rabbitmq/9.1.0/lib/net10.0/MassTransit.RabbitMqTransport.dll
  masstransit/9.1.0/lib/net10.0/MassTransit.dll
- mediatr.contracts/2.0.1/lib/netstandard2.0/MediatR.Contracts.dll
- mediatr/12.5.0/lib/net6.0/MediatR.dll
- microsoft.aspnetcore.openapi/10.0.6/lib/net10.0/Microsoft.AspNetCore.OpenApi.dll
- microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.bcl.asyncinterfaces/8.0.0/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
  microsoft.data.sqlclient/6.1.1/ref/net9.0/Microsoft.Data.SqlClient.dll
  microsoft.entityframeworkcore.abstractions/10.0.6/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -472,6 +407,7 @@ Sagas/
  microsoft.extensions.dependencyinjection.autoactivation/10.5.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll
  microsoft.extensions.dependencymodel/10.0.6/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
+ microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/10.0.6/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
  microsoft.extensions.http.diagnostics/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Diagnostics.dll
  microsoft.extensions.http.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Resilience.dll
  microsoft.extensions.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Resilience.dll
@@ -479,22 +415,20 @@ Sagas/
  microsoft.extensions.servicediscovery/10.5.0/lib/net10.0/Microsoft.Extensions.ServiceDiscovery.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.Abstractions.dll
  microsoft.extensions.telemetry/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.dll
- microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
- microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
- microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll
+ microsoft.identity.client.extensions.msal/4.73.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
+ microsoft.identity.client/4.73.1/lib/net8.0/Microsoft.Identity.Client.dll
+ microsoft.identitymodel.abstractions/7.7.1/lib/net8.0/Microsoft.IdentityModel.Abstractions.dll
  microsoft.identitymodel.jsonwebtokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.JsonWebTokens.dll
  microsoft.identitymodel.logging/7.7.1/lib/net8.0/Microsoft.IdentityModel.Logging.dll
  microsoft.identitymodel.protocols.openidconnect/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
  microsoft.identitymodel.protocols/7.7.1/lib/net8.0/Microsoft.IdentityModel.Protocols.dll
  microsoft.identitymodel.tokens/7.7.1/lib/net8.0/Microsoft.IdentityModel.Tokens.dll
- microsoft.openapi/2.0.0/lib/net8.0/Microsoft.OpenApi.dll
  microsoft.sqlserver.server/1.0.0/lib/netstandard2.0/Microsoft.SqlServer.Server.dll
  opentelemetry.api.providerbuilderextensions/1.15.2/lib/net10.0/OpenTelemetry.Api.ProviderBuilderExtensions.dll
  opentelemetry.api/1.15.2/lib/net10.0/OpenTelemetry.Api.dll
  opentelemetry.exporter.opentelemetryprotocol/1.15.2/lib/net10.0/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll
  opentelemetry.extensions.hosting/1.15.2/lib/net10.0/OpenTelemetry.Extensions.Hosting.dll
  opentelemetry.instrumentation.aspnetcore/1.15.1/lib/net10.0/OpenTelemetry.Instrumentation.AspNetCore.dll
- opentelemetry.instrumentation.entityframeworkcore/1.15.0-beta.1/lib/net10.0/OpenTelemetry.Instrumentation.EntityFrameworkCore.dll
  opentelemetry.instrumentation.http/1.15.0/lib/net10.0/OpenTelemetry.Instrumentation.Http.dll
  opentelemetry.instrumentation.runtime/1.15.0/lib/net10.0/OpenTelemetry.Instrumentation.Runtime.dll
  opentelemetry/1.15.2/lib/net10.0/OpenTelemetry.dll
@@ -502,12 +436,8 @@ Sagas/
  polly.extensions/8.4.2/lib/net8.0/Polly.Extensions.dll
  polly.ratelimiting/8.4.2/lib/net8.0/Polly.RateLimiting.dll
  rabbitmq.client/7.2.0/lib/net8.0/RabbitMQ.Client.dll
- refit.httpclientfactory/10.1.6/lib/net10.0/Refit.HttpClientFactory.dll
- refit/10.1.6/lib/net10.0/Refit.dll
  serilog.aspnetcore/10.0.0/lib/net10.0/Serilog.AspNetCore.dll
  serilog.enrichers.environment/3.0.1/lib/net8.0/Serilog.Enrichers.Environment.dll
- serilog.enrichers.process/3.0.0/lib/net8.0/Serilog.Enrichers.Process.dll
- serilog.enrichers.thread/4.0.0/lib/net8.0/Serilog.Enrichers.Thread.dll
  serilog.extensions.hosting/10.0.0/lib/net10.0/Serilog.Extensions.Hosting.dll
  serilog.extensions.logging/10.0.0/lib/net10.0/Serilog.Extensions.Logging.dll
  serilog.formatting.compact/3.0.0/lib/net8.0/Serilog.Formatting.Compact.dll
@@ -516,9 +446,9 @@ Sagas/
  serilog.sinks.debug/3.0.0/lib/net8.0/Serilog.Sinks.Debug.dll
  serilog.sinks.file/7.0.0/lib/net9.0/Serilog.Sinks.File.dll
  serilog/4.3.0/lib/net9.0/Serilog.dll
- system.clientmodel/1.10.0/lib/net10.0/System.ClientModel.dll
+ system.clientmodel/1.5.1/lib/net8.0/System.ClientModel.dll
  system.identitymodel.tokens.jwt/7.7.1/lib/net8.0/System.IdentityModel.Tokens.Jwt.dll
- system.memory.data/10.0.3/lib/net10.0/System.Memory.Data.dll
+ system.memory.data/8.0.1/lib/net8.0/System.Memory.Data.dll
  system.security.cryptography.pkcs/9.0.4/lib/net9.0/System.Security.Cryptography.Pkcs.dll
  system.security.cryptography.protecteddata/9.0.4/lib/net9.0/System.Security.Cryptography.ProtectedData.dll
 
@@ -547,20 +477,18 @@ Sagas/
 ../../../../../Program Files/dotnet/sdk/10.0.102/Sdks/Microsoft.NET.Sdk/analyzers/
  Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
  Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.analyzers/3.11.0/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
 <NUGET>/
- microsoft.aspnetcore.openapi/10.0.6/analyzers/dotnet/cs/Microsoft.AspNetCore.OpenApi.SourceGenerators.dll
- microsoft.codeanalysis.analyzers/3.11.0/analyzers/dotnet/cs/
-  Microsoft.CodeAnalysis.Analyzers.dll
-  Microsoft.CodeAnalysis.CSharp.Analyzers.dll
  microsoft.entityframeworkcore.analyzers/10.0.6/analyzers/dotnet/cs/Microsoft.EntityFrameworkCore.Analyzers.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/analyzers/dotnet/cs/
   Microsoft.Gen.Logging.dll
   Microsoft.Gen.Metrics.dll
- refit/10.1.6/analyzers/dotnet/roslyn5.0/cs/InterfaceStubGeneratorV3.dll
- system.clientmodel/1.10.0/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
+ system.clientmodel/1.5.1/analyzers/dotnet/cs/System.ClientModel.SourceGeneration.dll
 
 [analyzerConfigFiles]
 ../../
  ../../../Program Files/dotnet/sdk/10.0.102/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_10_default.globalconfig
  .editorconfig
-obj/Debug/net10.0/Orders.API.GeneratedMSBuildEditorConfig.editorconfig
+obj/Debug/net10.0/Payments.API.GeneratedMSBuildEditorConfig.editorconfig
