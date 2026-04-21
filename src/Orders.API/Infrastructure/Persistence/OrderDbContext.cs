@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Infrastructure.Audit;
@@ -24,5 +25,10 @@ public class OrderDbContext : DbContext
     {
         modelBuilder.HasDefaultSchema("orders");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderDbContext).Assembly);
+
+        // MassTransit Outbox tables — necesario para que ef migrations las detecte
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
     }
 }

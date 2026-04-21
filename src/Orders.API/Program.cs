@@ -23,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Orders.API.API.Middleware;
 using Orders.API.Application.Settings;
 using Orders.API.Consumers;
+using Orders.API.Infrastructure.Outbox;
 using Orders.API.Infrastructure.Persistence.Seeds;
 using Orders.API.Infrastructure.Telemetry;
 using Polly;
@@ -83,26 +84,33 @@ try
     builder.Services
         .AddSingleton<IValidateOptions<OrdersSettings>, OrdersSettingsValidator>();
 
-    // ─── RabbitMQ connection (singleton) para Health Check ───────────────────
-    builder.Services.AddSingleton<IConnection>(_ =>
+    var messagingTransport = builder.Configuration["Messaging:Transport"] ?? "RabbitMQ";
+
+    // ─── RabbitMQ connection (singleton) para Health Check — solo si usamos RabbitMQ ──
+    if (messagingTransport == "RabbitMQ")
     {
-        var factory = new ConnectionFactory
+        builder.Services.AddSingleton<IConnection>(_ =>
         {
-            Uri = new Uri(builder.Configuration.GetConnectionString("messaging")!)
-        };
-        return factory.CreateConnectionAsync().GetAwaiter().GetResult();
-    });
+            var factory = new ConnectionFactory
+            {
+                Uri = new Uri(builder.Configuration.GetConnectionString("messaging")!)
+            };
+            return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        });
+    }
 
     // ─── Health Checks ────────────────────────────────────────────────────────
-    builder.Services.AddHealthChecks()
+    var healthChecks = builder.Services.AddHealthChecks()
         .AddSqlServer(
             connectionStringFactory: sp =>
                 sp.GetRequiredService<IConfiguration>().GetConnectionString("sqlserver")!,
             healthQuery: "SELECT 1",
             name: "orders-db",
             failureStatus: HealthStatus.Unhealthy,
-            tags: ["ready", "db"])
-        .AddRabbitMQ(
+            tags: ["ready", "db"]);
+
+    if (messagingTransport == "RabbitMQ")
+        healthChecks.AddRabbitMQ(
             name: "rabbitmq",
             failureStatus: HealthStatus.Degraded,
             tags: ["ready", "messaging"]);
@@ -192,7 +200,7 @@ try
                 .AddTimeout(TimeSpan.FromSeconds(5));
         });
 
-    // ─── MassTransit + Saga: RabbitMQ (dev) / Azure Service Bus (prod) ──────────
+    // ─── MassTransit + Saga + Outbox ─────────────────────────────────────────────
     if (builder.Environment.IsProduction())
     {
         builder.Services.AddMassTransit(x =>
@@ -205,6 +213,20 @@ try
                 });
 
             x.AddConsumer<ProductNameUpdatedConsumer>();
+
+            // Outbox desactivado en Testing para que los hosted services no
+            // intenten conectar a la BD antes de que InitializeAsync la cree
+            if (!builder.Environment.IsEnvironment("Testing"))
+            {
+                x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+                {
+                    o.UseSqlServer();
+                    o.QueryDelay        = TimeSpan.FromSeconds(5);
+                    o.QueryMessageLimit = 100;
+                    o.UseBusOutbox(busOutbox =>
+                        busOutbox.MessageDeliveryTimeout = TimeSpan.FromMinutes(5));
+                });
+            }
 
             x.UsingAzureServiceBus((context, cfg) =>
             {
@@ -233,20 +255,45 @@ try
 
             x.AddConsumer<ProductNameUpdatedConsumer>();
 
-            x.UsingRabbitMq((context, cfg) =>
+            // Outbox desactivado en Testing para que los hosted services no
+            // intenten conectar a la BD antes de que InitializeAsync la cree
+            if (!builder.Environment.IsEnvironment("Testing"))
             {
-                cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+                x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+                {
+                    o.UseSqlServer();
+                    o.QueryDelay        = TimeSpan.FromSeconds(5);
+                    o.QueryMessageLimit = 100;
+                    o.UseBusOutbox(busOutbox =>
+                        busOutbox.MessageDeliveryTimeout = TimeSpan.FromMinutes(5));
+                });
+            }
 
-                cfg.UseMessageRetry(r => r.Exponential(
-                    retryLimit:    5,
-                    minInterval:   TimeSpan.FromSeconds(1),
-                    maxInterval:   TimeSpan.FromSeconds(30),
-                    intervalDelta: TimeSpan.FromSeconds(2)));
+            if (messagingTransport == "InMemory")
+            {
+                x.UsingInMemory((ctx, cfg) => cfg.ConfigureEndpoints(ctx));
+            }
+            else
+            {
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
 
-                cfg.ConfigureEndpoints(context);
-            });
+                    cfg.UseMessageRetry(r => r.Exponential(
+                        retryLimit:    5,
+                        minInterval:   TimeSpan.FromSeconds(1),
+                        maxInterval:   TimeSpan.FromSeconds(30),
+                        intervalDelta: TimeSpan.FromSeconds(2)));
+
+                    cfg.ConfigureEndpoints(context);
+                });
+            }
         });
     }
+
+    // ─── Outbox cleanup job (no aplica en Testing) ───────────────────────────
+    if (!builder.Environment.IsEnvironment("Testing"))
+        builder.Services.AddHostedService<OutboxCleanupJob>();
 
     // ─── JWT Authentication ───────────────────────────────────────────────────
     builder.Services

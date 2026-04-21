@@ -43,6 +43,8 @@ public class TransactionBehavior<TRequest, TResponse>
                 try
                 {
                     var response = await nextDelegate();
+                    // Flush any OutboxMessage rows queued by MassTransit after Publish()
+                    await _dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
                     _logger.LogDebug("Transaction committed for {Request}", typeof(TRequest).Name);
                     return response;

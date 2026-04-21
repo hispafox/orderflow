@@ -42,11 +42,11 @@ public class OrdersApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
         builder.ConfigureTestServices(services =>
         {
-            // Mock IConnection (RabbitMQ health check)
+            // Mock IConnection (RabbitMQ health check — may or may not be registered)
             services.RemoveAll<IConnection>();
             services.AddSingleton(Substitute.For<IConnection>());
 
-            // Replace MassTransit transport with in-memory test bus
+            // Replace MassTransit with test harness — in-memory bus, no Outbox, no RabbitMQ
             services.AddMassTransitTestHarness();
 
             // Replace ProductsClient with a mock that returns a valid product
