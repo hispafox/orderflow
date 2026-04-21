@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Notifications.API.Consumers;
 using Notifications.API.Infrastructure;
+using Notifications.API.Infrastructure.Interceptors;
 using Notifications.API.Services;
 using Serilog;
 
@@ -28,10 +29,23 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .Enrich.WithMachineName());
 
 // ─── NotificationDbContext ────────────────────────────────────────────────────
-builder.Services.AddDbContext<NotificationDbContext>(options =>
+builder.Services.AddScoped<AuditInterceptor>();
+
+builder.Services.AddDbContext<NotificationDbContext>((sp, options) =>
+{
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("sqlserver"),
-        sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "notifications")));
+        builder.Configuration.GetConnectionString("sqlserver")!,
+        sql =>
+        {
+            sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+            sql.CommandTimeout(60);
+            sql.MigrationsHistoryTable("__EFMigrationsHistory", "notifications");
+        })
+    .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+
+    if (builder.Environment.IsDevelopment())
+        options.EnableSensitiveDataLogging().EnableDetailedErrors();
+});
 
 // ─── Email service ────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IEmailService, FakeEmailService>();
@@ -93,5 +107,22 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 app.MapDefaultEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+    await db.Database.MigrateAsync();
+}
+else
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+    var pending = await db.Database.GetPendingMigrationsAsync();
+    if (pending.Any())
+        app.Logger.LogCritical(
+            "There are {Count} pending migrations: {Migrations}.",
+            pending.Count(), string.Join(", ", pending));
+}
 
 app.Run();

@@ -8,6 +8,8 @@ using Products.API.API.Middleware;
 using Products.API.Domain.Interfaces;
 using Products.API.Features;
 using Products.API.Infrastructure.Persistence;
+using Products.API.Infrastructure.Persistence.Interceptors;
+using Products.API.Infrastructure.Persistence.Seeds;
 using Products.API.Infrastructure.Settings;
 using Scalar.AspNetCore;
 using Serilog;
@@ -60,10 +62,23 @@ try
             tags: ["ready", "db"]);
 
     // ─── Infraestructura ──────────────────────────────────────────────────────
+    builder.Services.AddScoped<AuditInterceptor>();
+
     builder.Services.AddDbContext<ProductDbContext>((sp, options) =>
+    {
         options.UseSqlServer(
-            sp.GetRequiredService<IConfiguration>().GetConnectionString("sqlserver"),
-            sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "products")));
+            builder.Configuration.GetConnectionString("sqlserver")!,
+            sql =>
+            {
+                sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+                sql.CommandTimeout(60);
+                sql.MigrationsHistoryTable("__EFMigrationsHistory", "products");
+            })
+        .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+
+        if (builder.Environment.IsDevelopment())
+            options.EnableSensitiveDataLogging().EnableDetailedErrors();
+    });
 
     builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
 
@@ -165,6 +180,28 @@ try
     });
 
     app.MapDefaultEndpoints();
+
+    if (app.Environment.IsDevelopment())
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+        await db.Database.MigrateAsync();
+        await CategorySeed.InitializeAsync(db);
+        await ProductSeed.InitializeAsync(db);
+    }
+    else
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+        var pending = await db.Database.GetPendingMigrationsAsync();
+        if (pending.Any())
+        {
+            app.Logger.LogCritical(
+                "There are {Count} pending migrations: {Migrations}. Service will start but health check will be Unhealthy.",
+                pending.Count(), string.Join(", ", pending));
+        }
+    }
+
     app.Run();
 }
 catch (Exception ex) when (ex is not HostAbortedException)

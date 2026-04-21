@@ -13,6 +13,7 @@ public class Order
     public DateTime    CreatedAt       { get; private set; }
     public DateTime?   ConfirmedAt     { get; private set; }
     public DateTime?   CancelledAt     { get; private set; }
+    public bool        IsDeleted       { get; private set; }
 
     // C# 14 field-backed property — validación en setter sin campo de respaldo explícito
     public string? CancellationReason
@@ -29,9 +30,7 @@ public class Order
     private readonly List<OrderLine> _lines = [];
     public IReadOnlyList<OrderLine> Lines => _lines.AsReadOnly();
 
-    public Money Total => Lines.Any()
-        ? Lines.Skip(1).Aggregate(Lines[0].LineTotal, (acc, line) => acc.Add(line.LineTotal))
-        : Money.Zero("EUR");
+    public Money Total { get; private set; } = null!;
 
     private readonly List<IDomainEvent> _domainEvents = [];
     public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
@@ -65,6 +64,9 @@ public class Order
 
         foreach (var item in itemList)
             order._lines.Add(OrderLine.Create(item.ProductId, item.ProductName, item.Quantity, item.UnitPrice));
+
+        order.Total = order._lines.Skip(1)
+            .Aggregate(order._lines[0].LineTotal, (acc, l) => acc.Add(l.LineTotal));
 
         if (order.Total.Amount < 10.00m)
             throw new DomainException("Minimum order amount is 10.00 EUR");

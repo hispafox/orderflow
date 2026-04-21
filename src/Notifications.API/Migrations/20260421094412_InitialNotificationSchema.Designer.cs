@@ -12,7 +12,7 @@ using Notifications.API.Infrastructure;
 namespace Notifications.API.Migrations
 {
     [DbContext(typeof(NotificationDbContext))]
-    [Migration("20260420091458_InitialNotificationSchema")]
+    [Migration("20260421094412_InitialNotificationSchema")]
     partial class InitialNotificationSchema
     {
         /// <inheritdoc />

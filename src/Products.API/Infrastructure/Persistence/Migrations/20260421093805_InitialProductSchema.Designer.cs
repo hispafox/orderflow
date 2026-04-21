@@ -12,7 +12,7 @@ using Products.API.Infrastructure.Persistence;
 namespace Products.API.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ProductDbContext))]
-    [Migration("20260420070452_InitialProductSchema")]
+    [Migration("20260421093805_InitialProductSchema")]
     partial class InitialProductSchema
     {
         /// <inheritdoc />
@@ -29,7 +29,6 @@ namespace Products.API.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Products.API.Domain.Category", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
@@ -45,7 +44,6 @@ namespace Products.API.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Products.API.Domain.Product", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CategoryId")
@@ -84,9 +82,11 @@ namespace Products.API.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("IX_Products_CategoryId");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("Name")
+                        .HasDatabaseName("IX_Products_Name");
 
                     b.ToTable("Products", "products");
                 });

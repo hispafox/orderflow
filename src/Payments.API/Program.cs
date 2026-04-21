@@ -3,6 +3,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Payments.API.Consumers;
 using Payments.API.Infrastructure;
+using Payments.API.Infrastructure.Interceptors;
 using Payments.API.Services;
 using Serilog;
 
@@ -26,10 +27,23 @@ builder.Host.UseSerilog((ctx, lc) => lc
     .Enrich.WithMachineName());
 
 // ─── PaymentsDbContext ────────────────────────────────────────────────────────
-builder.Services.AddDbContext<PaymentsDbContext>(options =>
+builder.Services.AddScoped<AuditInterceptor>();
+
+builder.Services.AddDbContext<PaymentsDbContext>((sp, options) =>
+{
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("sqlserver"),
-        sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "payments")));
+        builder.Configuration.GetConnectionString("sqlserver")!,
+        sql =>
+        {
+            sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+            sql.CommandTimeout(60);
+            sql.MigrationsHistoryTable("__EFMigrationsHistory", "payments");
+        })
+    .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+
+    if (builder.Environment.IsDevelopment())
+        options.EnableSensitiveDataLogging().EnableDetailedErrors();
+});
 
 // ─── Payment Gateway ──────────────────────────────────────────────────────────
 builder.Services.AddScoped<IPaymentGateway, FakePaymentGateway>();
@@ -90,5 +104,22 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 app.MapDefaultEndpoints();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+    await db.Database.MigrateAsync();
+}
+else
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
+    var pending = await db.Database.GetPendingMigrationsAsync();
+    if (pending.Any())
+        app.Logger.LogCritical(
+            "There are {Count} pending migrations: {Migrations}.",
+            pending.Count(), string.Join(", ", pending));
+}
 
 app.Run();

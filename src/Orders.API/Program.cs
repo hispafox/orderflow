@@ -19,8 +19,11 @@ using Orders.API.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
+using Microsoft.EntityFrameworkCore;
 using Orders.API.API.Middleware;
 using Orders.API.Application.Settings;
+using Orders.API.Consumers;
+using Orders.API.Infrastructure.Persistence.Seeds;
 using Orders.API.Infrastructure.Telemetry;
 using Polly;
 using Polly.CircuitBreaker;
@@ -58,7 +61,8 @@ try
             .AddSource("Orders.API"))
         .WithMetrics(metrics => metrics
             .AddMeter("Orders.API")
-            .AddMeter("MassTransit"));
+            .AddMeter("MassTransit")
+            .AddMeter("Microsoft.EntityFrameworkCore"));
 
     builder.Services.AddSingleton<OrdersMetrics>();
 
@@ -200,6 +204,8 @@ try
                     r.ExistingDbContext<OrderDbContext>();
                 });
 
+            x.AddConsumer<ProductNameUpdatedConsumer>();
+
             x.UsingAzureServiceBus((context, cfg) =>
             {
                 cfg.Host(
@@ -224,6 +230,8 @@ try
                     r.ConcurrencyMode = ConcurrencyMode.Optimistic;
                     r.ExistingDbContext<OrderDbContext>();
                 });
+
+            x.AddConsumer<ProductNameUpdatedConsumer>();
 
             x.UsingRabbitMq((context, cfg) =>
             {
@@ -363,6 +371,27 @@ try
     });
 
     app.MapDefaultEndpoints(); // /health y /alive
+
+    // ─── Verificación de migrations al arrancar ───────────────────────────────────
+    if (app.Environment.IsDevelopment())
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+        await dbContext.Database.MigrateAsync();
+        await OrderSeed.InitializeAsync(dbContext);
+    }
+    else
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
+        var pending = await dbContext.Database.GetPendingMigrationsAsync();
+        if (pending.Any())
+        {
+            app.Logger.LogCritical(
+                "There are {Count} pending migrations: {Migrations}. Service will start but health check will be Unhealthy.",
+                pending.Count(), string.Join(", ", pending));
+        }
+    }
 
     app.Run();
 }
