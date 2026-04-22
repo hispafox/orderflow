@@ -64,6 +64,7 @@ Integration/
   OrdersEndpointTests.cs
   SmokeTests.cs
  Infrastructure/OrderRepositoryTests.cs
+ Migrations/MigrationTests.cs
  Outbox/OutboxPatternTests.cs
  ReadModel/OrderReadRepositoryTests.cs
  Security/SecurityTests.cs
@@ -189,8 +190,6 @@ Unit/
  Microsoft.Extensions.Configuration.Ini.dll
  Microsoft.Extensions.Configuration.KeyPerFile.dll
  Microsoft.Extensions.Configuration.Xml.dll
- Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions.dll
- Microsoft.Extensions.Diagnostics.HealthChecks.dll
  Microsoft.Extensions.FileProviders.Composite.dll
  Microsoft.Extensions.FileProviders.Embedded.dll
  Microsoft.Extensions.Identity.Core.dll
@@ -402,6 +401,7 @@ Unit/
  microsoft.azure.amqp/2.7.0/lib/net8.0/Microsoft.Azure.Amqp.dll
  microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
+ microsoft.bcl.timeprovider/8.0.1/lib/net8.0/Microsoft.Bcl.TimeProvider.dll
  microsoft.codecoverage/17.14.1/lib/net8.0/Microsoft.VisualStudio.CodeCoverage.Shim.dll
  microsoft.data.sqlclient/6.1.1/ref/net9.0/Microsoft.Data.SqlClient.dll
  microsoft.entityframeworkcore.abstractions/10.0.7/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -426,6 +426,9 @@ Unit/
  microsoft.extensions.dependencymodel/10.0.7/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.abstractions/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.Abstractions.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
+ microsoft.extensions.diagnostics.healthchecks.abstractions/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions.dll
+ microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
+ microsoft.extensions.diagnostics.healthchecks/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.dll
  microsoft.extensions.diagnostics/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.dll
  microsoft.extensions.features/10.0.6/lib/net10.0/Microsoft.Extensions.Features.dll
  microsoft.extensions.fileproviders.abstractions/10.0.7/lib/net10.0/Microsoft.Extensions.FileProviders.Abstractions.dll
@@ -452,6 +455,8 @@ Unit/
  microsoft.extensions.servicediscovery/10.5.0/lib/net10.0/Microsoft.Extensions.ServiceDiscovery.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.Abstractions.dll
  microsoft.extensions.telemetry/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.dll
+ microsoft.featuremanagement.aspnetcore/4.4.0/lib/net9.0/Microsoft.FeatureManagement.AspNetCore.dll
+ microsoft.featuremanagement/4.4.0/lib/netstandard2.1/Microsoft.FeatureManagement.dll
  microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
  microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll

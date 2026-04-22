@@ -1,0 +1,114 @@
+name: Deploy Orders.API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Orders.API/**'
+      - 'shared/**'
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Build
+        run: dotnet build OrderFlow.slnx -c Release
+
+      - name: Migration tests
+        run: dotnet test --filter "Category=Migration" --no-build -c Release
+
+      - name: Integration tests
+        run: dotnet test --filter "Category=Integration" --no-build -c Release
+
+  migrate:
+    name: Apply Migrations
+    runs-on: ubuntu-latest
+    needs: test
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Generate idempotent migration script (para revisión)
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef migrations script \
+            --project src/Orders.API \
+            --context OrderDbContext \
+            --idempotent \
+            --output migration-script.sql
+          cat migration-script.sql
+
+      - name: Build Migration Bundle
+        run: |
+          dotnet ef migrations bundle \
+            --project src/Orders.API \
+            --context OrderDbContext \
+            --output ./artifacts/efbundle-orders \
+            --self-contained \
+            --runtime linux-x64
+
+      # BD ANTES QUE CÓDIGO — aditiva siempre, compatible con el código v-1
+      - name: Apply Migrations
+        run: |
+          chmod +x ./artifacts/efbundle-orders
+          ./artifacts/efbundle-orders \
+            --connection "${{ secrets.ORDERS_DB_CONNECTION }}"
+
+      - name: Verify health
+        run: |
+          curl -f "https://orderflow-orders.azurewebsites.net/health/ready" \
+            | jq '.entries["orders-db-migrations"].status' \
+            | grep -q "Healthy"
+
+  deploy:
+    name: Deploy Code
+    runs-on: ubuntu-latest
+    needs: migrate
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Publish
+        run: dotnet publish src/Orders.API -c Release -o ./publish/orders-api
+
+      - name: Deploy to staging slot
+        run: |
+          az webapp deploy \
+            --resource-group orderflow-rg \
+            --name orderflow-orders \
+            --slot staging \
+            --src-path ./publish/orders-api
+
+      - name: Smoke test staging
+        run: |
+          sleep 10
+          curl -f "https://orderflow-orders-staging.azurewebsites.net/health"
+
+      # Swap: sin downtime, rollback = swap inverso
+      - name: Swap staging → production
+        run: |
+          az webapp deployment slot swap \
+            --resource-group orderflow-rg \
+            --name orderflow-orders \
+            --slot staging \
+            --target-slot production
+
+      - name: Verify production
+        run: |
+          sleep 10
+          bash scripts/verify-migration.sh https://orderflow-orders.azurewebsites.net

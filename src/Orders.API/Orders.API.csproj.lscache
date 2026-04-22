@@ -151,6 +151,12 @@ Infrastructure/
    20260421103648_AddMassTransitOutbox.Designer.cs
    20260422044349_AddOrderSummariesReadModel.cs
    20260422044349_AddOrderSummariesReadModel.Designer.cs
+   20260422050255_ExpandAddDiscountAmount.cs
+   20260422050255_ExpandAddDiscountAmount.Designer.cs
+   20260422053057_ContractDiscountAmountNotNull.cs
+   20260422053057_ContractDiscountAmountNotNull.Designer.cs
+   20260422053345_ExpandAddBuyerIdColumn.cs
+   20260422053345_ExpandAddBuyerIdColumn.Designer.cs
    OrderDbContextModelSnapshot.cs
   OrderDbContext.cs
   ReadModel/
@@ -511,6 +517,7 @@ Sagas/
  microsoft.azure.amqp/2.7.0/lib/net8.0/Microsoft.Azure.Amqp.dll
  microsoft.bcl.asyncinterfaces/10.0.3/lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll
  microsoft.bcl.cryptography/9.0.4/lib/net9.0/Microsoft.Bcl.Cryptography.dll
+ microsoft.bcl.timeprovider/8.0.1/lib/net8.0/Microsoft.Bcl.TimeProvider.dll
  microsoft.data.sqlclient/6.1.1/ref/net9.0/Microsoft.Data.SqlClient.dll
  microsoft.entityframeworkcore.abstractions/10.0.7/lib/net10.0/Microsoft.EntityFrameworkCore.Abstractions.dll
  microsoft.entityframeworkcore.relational/10.0.7/lib/net10.0/Microsoft.EntityFrameworkCore.Relational.dll
@@ -521,6 +528,7 @@ Sagas/
  microsoft.extensions.dependencyinjection.autoactivation/10.5.0/lib/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll
  microsoft.extensions.dependencymodel/10.0.7/lib/net10.0/Microsoft.Extensions.DependencyModel.dll
  microsoft.extensions.diagnostics.exceptionsummarization/10.5.0/lib/net10.0/Microsoft.Extensions.Diagnostics.ExceptionSummarization.dll
+ microsoft.extensions.diagnostics.healthchecks.entityframeworkcore/10.0.7/lib/net10.0/Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore.dll
  microsoft.extensions.http.diagnostics/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Diagnostics.dll
  microsoft.extensions.http.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Http.Resilience.dll
  microsoft.extensions.resilience/10.5.0/lib/net10.0/Microsoft.Extensions.Resilience.dll
@@ -528,6 +536,8 @@ Sagas/
  microsoft.extensions.servicediscovery/10.5.0/lib/net10.0/Microsoft.Extensions.ServiceDiscovery.dll
  microsoft.extensions.telemetry.abstractions/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.Abstractions.dll
  microsoft.extensions.telemetry/10.5.0/lib/net10.0/Microsoft.Extensions.Telemetry.dll
+ microsoft.featuremanagement.aspnetcore/4.4.0/lib/net9.0/Microsoft.FeatureManagement.AspNetCore.dll
+ microsoft.featuremanagement/4.4.0/lib/netstandard2.1/Microsoft.FeatureManagement.dll
  microsoft.identity.client.extensions.msal/4.83.1/lib/net8.0/Microsoft.Identity.Client.Extensions.Msal.dll
  microsoft.identity.client/4.83.1/lib/net8.0/Microsoft.Identity.Client.dll
  microsoft.identitymodel.abstractions/8.14.0/lib/net9.0/Microsoft.IdentityModel.Abstractions.dll

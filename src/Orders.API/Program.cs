@@ -18,6 +18,7 @@ using Orders.API.Infrastructure.Http;
 using Orders.API.Infrastructure.Persistence;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using OpenTelemetry.Trace;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.API.Middleware;
@@ -108,7 +109,13 @@ try
             healthQuery: "SELECT 1",
             name: "orders-db",
             failureStatus: HealthStatus.Unhealthy,
-            tags: ["ready", "db"]);
+            tags: ["ready", "db"])
+        .AddDbContextCheck<OrderDbContext>(
+            name:          "orders-db-migrations",
+            failureStatus: HealthStatus.Unhealthy,
+            tags:          ["ready", "db"],
+            customTestQuery: async (ctx, ct) =>
+                !(await ctx.Database.GetPendingMigrationsAsync(ct)).Any());
 
     if (messagingTransport == "RabbitMQ")
         healthChecks.AddRabbitMQ(
@@ -332,6 +339,10 @@ try
 
     // ─── FluentValidation ────────────────────────────────────────────────────
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+    // ─── Feature Management ──────────────────────────────────────────────────
+    // Flags en appsettings por ahora. En prod se conectará Azure App Configuration (M7.2).
+    builder.Services.AddFeatureManagement();
 
     // ─── Audit Logger ────────────────────────────────────────────────────────
     builder.Services.AddScoped<Orders.API.Application.Interfaces.IAuditLogger,
