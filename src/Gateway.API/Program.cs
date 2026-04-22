@@ -182,6 +182,20 @@ builder.Services.AddRateLimiter(options =>
             });
     });
 
+    // Rate limiting estricto por IP — para endpoints sensibles (pagos, admin)
+    options.AddPolicy("PerIp", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: $"per-ip:{clientIp}",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                Window      = TimeSpan.FromMinutes(1),
+                PermitLimit = 20,
+                QueueLimit  = 0
+            });
+    });
+
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = async (context, ct) =>
     {
