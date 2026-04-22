@@ -327,6 +327,23 @@ try
                 IssuerSigningKey  = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                 ClockSkew         = TimeSpan.FromSeconds(30)
             };
+
+            options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+            {
+                OnAuthenticationFailed = ctx =>
+                {
+                    ctx.HttpContext.RequestServices
+                        .GetRequiredService<ILogger<Program>>()
+                        .LogWarning(
+                            "[JWT DEBUG] Auth failed — Type: {Type} | Message: {Message} | ExpectedIssuer: {Issuer} | ExpectedAudience: {Audience} | KeyLen: {KeyLen}",
+                            ctx.Exception.GetType().Name,
+                            ctx.Exception.Message,
+                            builder.Configuration["Jwt:Issuer"],
+                            builder.Configuration["Jwt:Audience"],
+                            key?.Length ?? 0);
+                    return Task.CompletedTask;
+                }
+            };
         });
 
     builder.Services.AddAuthorization(options =>
