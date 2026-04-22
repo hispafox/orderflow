@@ -258,7 +258,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    await app.Services.GetRequiredService<GatewayIdentityDbContext>()
+    await scope.ServiceProvider.GetRequiredService<GatewayIdentityDbContext>()
         .Database.MigrateAsync();
     await SeedData.InitializeAsync(scope.ServiceProvider);
 }
