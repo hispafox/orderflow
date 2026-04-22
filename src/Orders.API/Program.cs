@@ -20,6 +20,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using OpenTelemetry.Trace;
+using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.API.Middleware;
 using Orders.API.Application.Settings;
@@ -395,7 +396,15 @@ try
     app.UseMiddleware<DomainExceptionMiddleware>(); // ← PRIMERO: captura excepciones de dominio
 
     if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+    {
         app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options.WithTitle("Orders API");
+            options.WithTheme(ScalarTheme.Moon);
+            options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
+    }
 
     app.UseHttpsRedirection();
     app.UseMiddleware<CorrelationIdMiddleware>();
