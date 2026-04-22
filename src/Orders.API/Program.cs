@@ -243,6 +243,9 @@ try
                 });
 
             x.AddConsumer<ProductNameUpdatedConsumer>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderSummaryProjector>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderConfirmedProjector>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderCancelledProjector>();
 
             // Outbox desactivado en Testing para que los hosted services no
             // intenten conectar a la BD antes de que InitializeAsync la cree
@@ -284,6 +287,9 @@ try
                 });
 
             x.AddConsumer<ProductNameUpdatedConsumer>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderSummaryProjector>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderConfirmedProjector>();
+            x.AddConsumer<Orders.API.Infrastructure.Consumers.Projectors.OrderCancelledProjector>();
 
             // Outbox desactivado en Testing para que los hosted services no
             // intenten conectar a la BD antes de que InitializeAsync la cree
