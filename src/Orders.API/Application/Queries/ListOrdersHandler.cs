@@ -1,18 +1,18 @@
 using MediatR;
 using Orders.API.API.DTOs;
 using Orders.API.API.DTOs.Responses;
-using Orders.API.API.Mappings;
-using Orders.API.Domain.Interfaces;
+using Orders.API.Application.Interfaces;
 
 namespace Orders.API.Application.Queries;
 
 public class ListOrdersHandler : IRequestHandler<ListOrdersQuery, PagedResult<OrderSummaryDto>>
 {
-    private readonly IOrderRepository _repository;
+    private readonly IOrderReadRepository _readRepository;
 
-    public ListOrdersHandler(IOrderRepository repository) => _repository = repository;
+    public ListOrdersHandler(IOrderReadRepository readRepository)
+        => _readRepository = readRepository;
 
-    public async Task<PagedResult<OrderSummaryDto>> Handle(
+    public Task<PagedResult<OrderSummaryDto>> Handle(
         ListOrdersQuery   query,
         CancellationToken ct)
     {
@@ -20,19 +20,11 @@ public class ListOrdersHandler : IRequestHandler<ListOrdersQuery, PagedResult<Or
             ? query.CustomerId
             : (query.UserId is not null ? Guid.Parse(query.UserId) : query.CustomerId);
 
-        var (orders, total) = await _repository.ListAsync(
-            status:     query.Status,
+        return _readRepository.ListAsync(
             customerId: customerIdFilter,
+            status:     query.Status,
             page:       query.Page,
             pageSize:   query.PageSize,
             ct:         ct);
-
-        return new PagedResult<OrderSummaryDto>
-        {
-            Items      = orders.Select(o => o.ToSummaryDto()).ToList(),
-            TotalCount = total,
-            Page       = query.Page,
-            PageSize   = query.PageSize
-        };
     }
 }

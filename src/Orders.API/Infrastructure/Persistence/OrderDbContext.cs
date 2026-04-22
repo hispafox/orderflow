@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Infrastructure.Audit;
+using Orders.API.Infrastructure.Persistence.ReadModel;
 using Orders.API.Sagas;
 
 namespace Orders.API.Infrastructure.Persistence;
@@ -20,6 +21,9 @@ public class OrderDbContext : DbContext
 
     // OrderSagaState gestionado por MassTransit, disponible para consultas
     public DbSet<OrderSagaState> SagaStates => Set<OrderSagaState>();
+
+    // Read Model — alimentado por proyectores, consultado por Dapper
+    public DbSet<OrderSummary> OrderSummaries => Set<OrderSummary>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

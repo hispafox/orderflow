@@ -17,13 +17,28 @@ public record OrderDto
 
 public record OrderSummaryDto
 {
-    public Guid     Id         { get; init; }
-    public Guid     CustomerId { get; init; }
-    public string   Status     { get; init; } = string.Empty;
-    public decimal  Total      { get; init; }
-    public string   Currency   { get; init; } = string.Empty;
-    public int      LineCount  { get; init; }
-    public DateTime CreatedAt  { get; init; }
+    public Guid      Id            { get; init; }
+    public Guid      CustomerId    { get; init; }
+    public string    CustomerEmail { get; init; } = string.Empty;
+    public string    Status        { get; init; } = string.Empty;
+    public decimal   Total         { get; init; }
+    public string    Currency      { get; init; } = string.Empty;
+    public int       LineCount     { get; init; }
+    public string?   FirstItemName { get; init; }
+    public DateTime  CreatedAt     { get; init; }
+    public DateTime? ConfirmedAt   { get; init; }
+    public string?   ShippingCity  { get; init; }
+}
+
+public record OrderStatsDto
+{
+    public int       TotalOrders     { get; init; }
+    public int       PendingOrders   { get; init; }
+    public int       ConfirmedOrders { get; init; }
+    public decimal   TotalSpent      { get; init; }
+    public decimal   LargestOrder    { get; init; }
+    public DateTime? FirstOrderDate  { get; init; }
+    public DateTime? LastOrderDate   { get; init; }
 }
 
 public record OrderLineDto

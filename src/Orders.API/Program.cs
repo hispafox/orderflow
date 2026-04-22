@@ -62,6 +62,7 @@ try
             .AddSource("Orders.API"))
         .WithMetrics(metrics => metrics
             .AddMeter("Orders.API")
+            .AddMeter("Orders.API.ReadModel")
             .AddMeter("MassTransit")
             .AddMeter("Microsoft.EntityFrameworkCore"));
 
@@ -117,6 +118,11 @@ try
 
     // ─── Infraestructura ──────────────────────────────────────────────────────────
     builder.Services.AddOrdersInfrastructure(builder.Configuration, builder.Environment);
+
+    // ─── Read Repository (Dapper, sin EF Core tracking) ──────────────────────────
+    builder.Services.AddScoped<
+        Orders.API.Application.Interfaces.IOrderReadRepository,
+        Orders.API.Infrastructure.Persistence.ReadModel.OrderReadRepository>();
 
     // ─── HTTP Context (necesario para CorrelationIdDelegatingHandler) ─────────────
     builder.Services.AddHttpContextAccessor();

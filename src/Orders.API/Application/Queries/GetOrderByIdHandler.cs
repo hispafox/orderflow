@@ -1,19 +1,22 @@
 using MediatR;
 using Orders.API.API.DTOs.Responses;
-using Orders.API.API.Mappings;
-using Orders.API.Domain.Interfaces;
+using Orders.API.Application.Interfaces;
 
 namespace Orders.API.Application.Queries;
 
 public class GetOrderByIdHandler : IRequestHandler<GetOrderByIdQuery, OrderDto?>
 {
-    private readonly IOrderRepository _repository;
+    private readonly IOrderReadRepository _readRepository;
 
-    public GetOrderByIdHandler(IOrderRepository repository) => _repository = repository;
+    public GetOrderByIdHandler(IOrderReadRepository readRepository)
+        => _readRepository = readRepository;
 
-    public async Task<OrderDto?> Handle(GetOrderByIdQuery query, CancellationToken ct)
+    public Task<OrderDto?> Handle(GetOrderByIdQuery query, CancellationToken ct)
     {
-        var order = await _repository.GetByIdAsync(query.OrderId, ct);
-        return order?.ToDto();
+        // Si no se provee user context (llamada interna), permitir acceso total
+        var isAdmin = query.IsAdmin || query.RequestingUserId is null;
+        var userId  = query.RequestingUserId ?? Guid.Empty;
+
+        return _readRepository.GetByIdAsync(query.OrderId, userId, isAdmin, ct);
     }
 }
