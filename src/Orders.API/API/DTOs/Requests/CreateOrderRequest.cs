@@ -8,6 +8,10 @@ public record CreateOrderRequest
     public Guid CustomerId { get; init; }
 
     [Required]
+    [EmailAddress]
+    public string CustomerEmail { get; init; } = string.Empty;
+
+    [Required]
     [MinLength(1, ErrorMessage = "Order must have at least one item")]
     [MaxLength(50, ErrorMessage = "Order cannot have more than 50 items")]
     public IList<CreateOrderItemRequest> Items { get; init; } = [];

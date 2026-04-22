@@ -26,6 +26,7 @@ Content-Type: application/json
 
 {
   "customerId": "{{customerId}}",
+  "customerEmail": "john@techshop.es",
   "items": [
     {
       "productId": "a4b5c6d7-e8f9-0123-4567-89abcdef0123",

@@ -8,4 +8,7 @@ public record ListOrdersQuery(
     string? Status,
     int     Page,
     int     PageSize,
-    Guid?   CustomerId = null) : IRequest<PagedResult<OrderSummaryDto>>;
+    Guid?   CustomerId = null,
+    string? UserId     = null,
+    bool    IsAdmin    = false)
+    : IRequest<PagedResult<OrderSummaryDto>>;

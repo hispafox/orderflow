@@ -1,18 +1,22 @@
 using MediatR;
 using Orders.API.API.DTOs.Responses;
 using Orders.API.Application.Behaviors;
+using Orders.API.Application.Interfaces;
 
 namespace Orders.API.Application.Commands;
 
-/// <summary>
-/// Command para crear un nuevo pedido.
-/// ITransactional → TransactionBehavior envuelve la ejecución en una transacción EF Core.
-/// </summary>
 public record CreateOrderCommand(
     Guid                              CustomerId,
+    string                            CustomerEmail,
     IReadOnlyList<CreateOrderItemDto> Items,
     CreateOrderAddressDto             ShippingAddress)
-    : IRequest<OrderDto>, ITransactional;
+    : IRequest<OrderDto>, ITransactional, IAuditable
+{
+    public Guid   ActorId      => CustomerId;
+    public string ActorEmail   => CustomerEmail;
+    public string ResourceType => "Order";
+    public Guid?  ResourceId   => null;
+}
 
 public record CreateOrderItemDto(
     Guid    ProductId,

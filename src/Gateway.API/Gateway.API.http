@@ -1,0 +1,68 @@
+# OrderFlow — Todo el tráfico pasa por el Gateway
+@api = https://localhost:8080
+
+### ─── 1. LOGIN — Customer ───────────────────────────────────────────────────
+POST {{api}}/account/login
+Content-Type: application/json
+
+{
+  "email":    "john@techshop.es",
+  "password": "Customer1234!"
+}
+### → { "access_token": "eyJ...", "token_type": "Bearer", "expires_in": 3600 }
+
+@token = PEGAR_TOKEN_AQUI
+
+### ─── 2. PEDIDO CON TOKEN ────────────────────────────────────────────────────
+POST {{api}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "customerEmail": "john@techshop.es",
+  "items": [{
+    "productId":   "REEMPLAZAR_CON_ID_REAL",
+    "productName": "MacBook Pro 16\" M4",
+    "quantity": 1,
+    "unitPrice":   3999.99,
+    "currency":    "EUR"
+  }],
+  "shippingAddress": {
+    "street":  "Gran Vía 28",
+    "city":    "Madrid",
+    "zipCode": "28013",
+    "country": "ES"
+  }
+}
+### → 201 Created — customerId se toma del JWT (sub), no del body
+
+### ─── 3. LISTAR PEDIDOS (solo los del customer autenticado) ─────────────────
+GET {{api}}/api/orders
+Authorization: Bearer {{token}}
+### → 200 OK con los pedidos del customer
+
+### ─── 4. SIN TOKEN — debe devolver 401 ──────────────────────────────────────
+GET {{api}}/api/orders
+### → 401 Unauthorized
+
+### ─── 5. LOGIN ADMIN ─────────────────────────────────────────────────────────
+POST {{api}}/account/login
+Content-Type: application/json
+
+{ "email": "admin@techshop.es", "password": "Admin1234!" }
+
+@adminToken = PEGAR_TOKEN_ADMIN_AQUI
+
+### ─── 6. CONFIRMAR PEDIDO (solo admin) ──────────────────────────────────────
+### Con token customer → 403 Forbidden
+### Con token admin    → 204 No Content
+POST {{api}}/api/orders/REEMPLAZAR_CON_ID_REAL/confirm
+Authorization: Bearer {{adminToken}}
+
+### ─── HEALTH ──────────────────────────────────────────────────────────────────
+GET {{api}}/health
+### → {"status":"Healthy"}
+
+### ─── PRODUCTOS (sin autenticación) ─────────────────────────────────────────
+GET {{api}}/api/products
+### → YARP enruta a products-api/api/products

@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Falla el build si hay vulnerabilidades High o Critical en dependencias NuGet -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditLevel>high</NuGetAuditLevel>
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+</Project>

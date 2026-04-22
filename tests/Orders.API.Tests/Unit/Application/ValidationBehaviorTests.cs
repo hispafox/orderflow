@@ -21,6 +21,7 @@ public class ValidationBehaviorTests
 
         var invalidCommand = new CreateOrderCommand(
             CustomerId:      Guid.Empty,
+            CustomerEmail:   "not-an-email",
             Items:           [],
             ShippingAddress: new("s", "c", "z", "INVALID"));
 
@@ -45,6 +46,7 @@ public class ValidationBehaviorTests
 
         var validCommand = new CreateOrderCommand(
             CustomerId:      Guid.NewGuid(),
+            CustomerEmail:   "test@example.com",
             Items:           [new(Guid.NewGuid(), "MacBook Pro", 1, 1999.99m, "EUR")],
             ShippingAddress: new("Gran Vía 28", "Madrid", "28013", "ES"));
 
@@ -69,7 +71,7 @@ public class ValidationBehaviorTests
         var nextCalled = false;
 
         var command = new CreateOrderCommand(
-            Guid.NewGuid(), [], new("s", "c", "z", "ES"));
+            Guid.NewGuid(), "test@example.com", [], new("s", "c", "z", "ES"));
 
         await behavior.Handle(
             command,

@@ -7,6 +7,9 @@ public class Category
 
     private Category() { }
 
+    internal static Category ForSeed(Guid id, string name)
+        => new() { Id = id, Name = name };
+
     public static Category Create(string name)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);

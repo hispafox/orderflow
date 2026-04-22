@@ -6,16 +6,39 @@ var sqlServer = builder.AddConnectionString("sqlserver");
 // RabbitMQ local — sin Docker
 var messaging = builder.AddConnectionString("messaging");
 
+// Identity DB para Gateway.API
+var identityDb = builder.AddConnectionString("IdentityDb");
+
 // Products.API
 var products = builder
     .AddProject<Projects.Products_API>("products-api")
     .WithReference(sqlServer)
     .WithReference(messaging);
 
-// Orders.API — referencia a Products para Service Discovery
-builder.AddProject<Projects.Orders_API>("orders-api")
+// Notifications.API — consumers de OrderCreated, OrderConfirmed, OrderFailed
+var notifications = builder
+    .AddProject<Projects.Notifications_API>("notifications-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging);
+
+// Payments.API — consumer de ProcessPayment
+var payments = builder
+    .AddProject<Projects.Payments_API>("payments-api")
+    .WithReference(sqlServer)
+    .WithReference(messaging);
+
+// Orders.API — Saga orchestrator, referencia a Products para Service Discovery
+var orders = builder.AddProject<Projects.Orders_API>("orders-api")
     .WithReference(sqlServer)
     .WithReference(messaging)
     .WithReference(products);
+
+// Gateway.API — punto de entrada único para todo el tráfico externo
+builder.AddProject<Projects.Gateway_API>("gateway-api")
+    .WithReference(orders)
+    .WithReference(products)
+    .WithReference(payments)
+    .WithReference(notifications)
+    .WithReference(identityDb);
 
 builder.Build().Run();

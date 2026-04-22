@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Orders.API.Infrastructure.Persistence;
 
 namespace Orders.API.Application.Behaviors;
@@ -29,24 +30,33 @@ public class TransactionBehavior<TRequest, TResponse>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken ct)
     {
-        await using var transaction =
-            await _dbContext.Database.BeginTransactionAsync(ct);
-        try
-        {
-            var response = await next();
-            await transaction.CommitAsync(ct);
-            _logger.LogDebug(
-                "Transaction committed for {Request}",
-                typeof(TRequest).Name);
-            return response;
-        }
-        catch
-        {
-            await transaction.RollbackAsync(ct);
-            _logger.LogWarning(
-                "Transaction rolled back for {Request}",
-                typeof(TRequest).Name);
-            throw;
-        }
+        // CreateExecutionStrategy wraps the transaction in the retry policy,
+        // required when EnableRetryOnFailure is configured on the DbContext.
+        var strategy = _dbContext.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(
+            state: next,
+            operation: async (_, nextDelegate, cancellationToken) =>
+            {
+                await using var transaction =
+                    await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+                try
+                {
+                    var response = await nextDelegate();
+                    // Flush any OutboxMessage rows queued by MassTransit after Publish()
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    _logger.LogDebug("Transaction committed for {Request}", typeof(TRequest).Name);
+                    return response;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    _logger.LogWarning("Transaction rolled back for {Request}", typeof(TRequest).Name);
+                    throw;
+                }
+            },
+            verifySucceeded: null,
+            cancellationToken: ct);
     }
 }

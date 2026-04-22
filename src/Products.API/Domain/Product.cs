@@ -15,6 +15,23 @@ public class Product
 
     private Product() { }
 
+    internal static Product ForSeed(
+        Guid id, string name, string description,
+        decimal price, string currency, int initialStock, Guid categoryId)
+        => new()
+        {
+            Id          = id,
+            Name        = name.Trim(),
+            Description = description,
+            Price       = price,
+            Currency    = currency.ToUpperInvariant(),
+            Stock       = initialStock,
+            IsActive    = true,
+            CategoryId  = categoryId,
+            CreatedAt   = DateTime.UtcNow,
+            UpdatedAt   = DateTime.UtcNow
+        };
+
     public static Product Create(
         string name,
         string description,
