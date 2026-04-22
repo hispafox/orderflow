@@ -16,7 +16,7 @@ namespace Orders.API.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize]
+[AllowAnonymous]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator                 _mediator;
@@ -84,8 +84,15 @@ public class OrdersController : ControllerBase
         [FromBody] CreateOrderRequest request,
         CancellationToken ct = default)
     {
+        // Demo: si viene autenticado usa el sub del JWT, si no el CustomerId del body
+        var customerId = User.Identity?.IsAuthenticated == true
+            ? Guid.Parse(GetUserId())
+            : (request.CustomerId != Guid.Empty
+                ? request.CustomerId
+                : Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6"));
+
         var command = new CreateOrderCommand(
-            CustomerId:    Guid.Parse(GetUserId()),
+            CustomerId:    customerId,
             CustomerEmail: request.CustomerEmail,
             Items: request.Items.Select(i => new CreateOrderItemDto(
                 i.ProductId, i.ProductName, i.Quantity, i.UnitPrice, i.Currency)).ToList(),

@@ -13,15 +13,15 @@ Content-Type: application/json
 
 @token = PEGAR_TOKEN_AQUI
 
-### ─── 2. PEDIDO CON TOKEN ────────────────────────────────────────────────────
+### ─── 2. PEDIDO (demo — sin auth, usa customerId del body) ───────────────────
 POST {{api}}/api/orders
-Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
+  "customerId":    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "customerEmail": "john@techshop.es",
   "items": [{
-    "productId":   "REEMPLAZAR_CON_ID_REAL",
+    "productId":   "a4b5c6d7-e8f9-0123-4567-89abcdef0123",
     "productName": "MacBook Pro 16\" M4",
     "quantity": 1,
     "unitPrice":   3999.99,
