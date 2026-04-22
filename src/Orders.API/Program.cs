@@ -251,7 +251,7 @@ try
                 x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
                 {
                     o.UseSqlServer();
-                    o.QueryDelay        = TimeSpan.FromSeconds(5);
+                    o.QueryDelay        = TimeSpan.FromSeconds(1);
                     o.QueryMessageLimit = 100;
                     o.UseBusOutbox(busOutbox =>
                         busOutbox.MessageDeliveryTimeout = TimeSpan.FromMinutes(5));
@@ -292,7 +292,7 @@ try
                 x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
                 {
                     o.UseSqlServer();
-                    o.QueryDelay        = TimeSpan.FromSeconds(5);
+                    o.QueryDelay        = TimeSpan.FromSeconds(1);
                     o.QueryMessageLimit = 100;
                     o.UseBusOutbox(busOutbox =>
                         busOutbox.MessageDeliveryTimeout = TimeSpan.FromMinutes(5));

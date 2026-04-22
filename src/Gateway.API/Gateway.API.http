@@ -36,10 +36,13 @@ Content-Type: application/json
 }
 ### → 201 Created — customerId se toma del JWT (sub), no del body
 
-### ─── 3. LISTAR PEDIDOS (solo los del customer autenticado) ─────────────────
+### ─── 3. LISTAR PEDIDOS ──────────────────────────────────────────────────────
+### NOTA: eventual consistency — espera 1-2s tras el POST antes del GET
+### El POST escribe en orders.Orders (write model). El OrderSummaryProjector
+### (async, via Outbox + MassTransit) inserta en orders.OrderSummaries.
+### El GET lee de OrderSummaries (read model, Dapper).
 GET {{api}}/api/orders
-Authorization: Bearer {{token}}
-### → 200 OK con los pedidos del customer
+### → 200 OK con los pedidos
 
 ### ─── 4. SIN TOKEN — debe devolver 401 ──────────────────────────────────────
 GET {{api}}/api/orders
