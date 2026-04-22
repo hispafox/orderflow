@@ -21,10 +21,23 @@ if (builder.Environment.IsProduction())
 
 builder.AddServiceDefaults();
 
-builder.Host.UseSerilog((ctx, lc) => lc
-    .ReadFrom.Configuration(ctx.Configuration)
-    .Enrich.FromLogContext()
-    .Enrich.WithMachineName());
+builder.Host.UseSerilog((ctx, lc) =>
+{
+    lc.ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName();
+
+    var otlp = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+    if (!string.IsNullOrEmpty(otlp))
+    {
+        lc.WriteTo.OpenTelemetry(o =>
+        {
+            o.Endpoint = otlp;
+            o.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+            o.ResourceAttributes = new Dictionary<string, object> { ["service.name"] = "payments-api" };
+        });
+    }
+});
 
 // ─── PaymentsDbContext ────────────────────────────────────────────────────────
 builder.Services.AddScoped<AuditInterceptor>();

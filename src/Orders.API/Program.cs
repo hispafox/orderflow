@@ -49,13 +49,29 @@ try
     builder.AddServiceDefaults();
 
     // ─── Serilog ─────────────────────────────────────────────────────────────
-    builder.Host.UseSerilog((ctx, services, cfg) => cfg
-        .ReadFrom.Configuration(ctx.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.WithMachineName()
-        .Enrich.WithEnvironmentName()
-        .Enrich.With<OpenTelemetryEnricher>());
+    builder.Host.UseSerilog((ctx, services, cfg) =>
+    {
+        cfg.ReadFrom.Configuration(ctx.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .Enrich.WithMachineName()
+            .Enrich.WithEnvironmentName()
+            .Enrich.With<OpenTelemetryEnricher>();
+
+        var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+        if (!string.IsNullOrEmpty(otlpEndpoint))
+        {
+            cfg.WriteTo.OpenTelemetry(o =>
+            {
+                o.Endpoint = otlpEndpoint;
+                o.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+                o.ResourceAttributes = new Dictionary<string, object>
+                {
+                    ["service.name"] = "orders-api"
+                };
+            });
+        }
+    });
 
     // ─── OpenTelemetry — extender lo que ServiceDefaults ya configuró ─────────
     builder.Services.AddOpenTelemetry()

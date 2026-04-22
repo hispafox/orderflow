@@ -32,12 +32,25 @@ if (builder.Environment.IsProduction())
 builder.AddServiceDefaults();
 
 // ─── Serilog ─────────────────────────────────────────────────────────────────
-builder.Host.UseSerilog((ctx, svc, cfg) => cfg
-    .ReadFrom.Configuration(ctx.Configuration)
-    .ReadFrom.Services(svc)
-    .Enrich.FromLogContext()
-    .Enrich.WithProperty("Service", "gateway-api")
-    .Enrich.WithMachineName());
+builder.Host.UseSerilog((ctx, svc, cfg) =>
+{
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(svc)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("Service", "gateway-api")
+        .Enrich.WithMachineName();
+
+    var otlp = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+    if (!string.IsNullOrEmpty(otlp))
+    {
+        cfg.WriteTo.OpenTelemetry(o =>
+        {
+            o.Endpoint = otlp;
+            o.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+            o.ResourceAttributes = new Dictionary<string, object> { ["service.name"] = "gateway-api" };
+        });
+    }
+});
 
 // ─── Identity DbContext ───────────────────────────────────────────────────────
 builder.Services.AddDbContext<GatewayIdentityDbContext>(options =>
