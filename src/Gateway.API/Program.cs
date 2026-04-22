@@ -143,10 +143,11 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-// ─── YARP ─────────────────────────────────────────────────────────────────────
+// ─── YARP + Service Discovery (resuelve http://orders-api, http://products-api...)
 builder.Services
     .AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddServiceDiscoveryDestinationResolver();
 
 // ─── Rate Limiting inteligente: por usuario autenticado o por IP ─────────────
 builder.Services.AddRateLimiter(options =>
