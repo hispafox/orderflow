@@ -1,0 +1,43 @@
+{
+  "consumer": {
+    "name": "notifications-api"
+  },
+  "provider": {
+    "name": "orders-api"
+  },
+  "messages": [
+    {
+      "description": "an OrderCreated event",
+      "providerStates": [
+        {
+          "name": "a new order was created"
+        }
+      ],
+      "metadata": {
+        "contentType": "application/json"
+      },
+      "contents": {
+        "orderId": "\u003Cguid\u003E",
+        "customerId": "\u003Cguid\u003E",
+        "customerEmail": "\u003Cstring\u003E",
+        "total": "\u003Cdecimal\u003E",
+        "currency": "\u003Cstring-3\u003E",
+        "createdAt": "\u003Cdatetime\u003E",
+        "items": [
+          {
+            "productId": "\u003Cguid\u003E",
+            "productName": "\u003Cstring\u003E",
+            "quantity": "\u003Cint\u003E",
+            "unitPrice": "\u003Cdecimal\u003E"
+          }
+        ],
+        "shippingAddress": {
+          "street": "\u003Cstring\u003E",
+          "city": "\u003Cstring\u003E",
+          "zipCode": "\u003Cstring\u003E",
+          "country": "\u003Cstring-2\u003E"
+        }
+      }
+    }
+  ]
+}
