@@ -1,5 +1,5 @@
 # OrderFlow — Todo el tráfico pasa por el Gateway
-@api = https://localhost:8080
+@api = https://localhost:7146
 
 ### ─── 1. LOGIN — Customer ───────────────────────────────────────────────────
 POST {{api}}/account/login
