@@ -16,7 +16,7 @@ namespace Orders.API.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize(Policy = "CustomerOrAdmin")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly IMediator                 _mediator;
