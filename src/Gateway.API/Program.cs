@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 
@@ -125,6 +126,17 @@ builder.Services.AddScoped<JwtService>();
 // ─── Auth Failure Counter (brute force detection) ────────────────────────────
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<IAuthFailureCounter, MemoryAuthFailureCounter>();
+
+// ─── OpenAPI + Scalar UI ─────────────────────────────────────────────────────
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Info.Title       = "OrderFlow Gateway";
+        document.Info.Description = "Punto de entrada único: /account/* (login, register) + reverse proxy YARP";
+        return Task.CompletedTask;
+    });
+});
 
 // ─── YARP ─────────────────────────────────────────────────────────────────────
 builder.Services
@@ -275,6 +287,18 @@ if (app.Environment.IsDevelopment())
     await scope.ServiceProvider.GetRequiredService<GatewayIdentityDbContext>()
         .Database.MigrateAsync();
     await SeedData.InitializeAsync(scope.ServiceProvider);
+}
+
+// ─── OpenAPI + Scalar UI (solo Development) ──────────────────────────────────
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("OrderFlow Gateway");
+        options.WithTheme(ScalarTheme.Moon);
+        options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
 }
 
 // ─── Pipeline (orden crítico) ─────────────────────────────────────────────────
