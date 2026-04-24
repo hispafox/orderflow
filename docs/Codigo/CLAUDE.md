@@ -34,7 +34,7 @@
 | Dapper | 2.x | Read model (queries) |
 | MediatR | 12.x | CQRS + Pipeline Behaviors |
 | FluentValidation | 11.x | Validación de commands/requests |
-| MassTransit | 8.x | Mensajería asíncrona |
+| MassTransit | **8.5.2** (pinned) | Mensajería asíncrona — NO actualizar a 9.x (requiere licencia comercial) |
 | Polly | 8.x | Resiliencia (Retry, Circuit Breaker, Timeout) |
 | YARP | 2.x | Reverse Proxy para Gateway |
 | Serilog | 4.x | Structured logging |

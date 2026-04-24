@@ -84,22 +84,31 @@ if (builder.Environment.IsProduction())
 }
 else
 {
+    var messagingTransport = builder.Configuration["Messaging:Transport"] ?? "RabbitMQ";
+
     builder.Services.AddMassTransit(x =>
     {
         x.AddConsumers(typeof(Program).Assembly);
 
-        x.UsingRabbitMq((context, cfg) =>
+        if (messagingTransport == "InMemory")
         {
-            cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
+            x.UsingInMemory((ctx, cfg) => cfg.ConfigureEndpoints(ctx));
+        }
+        else
+        {
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(new Uri(builder.Configuration.GetConnectionString("messaging")!));
 
-            cfg.UseMessageRetry(r => r.Exponential(
-                retryLimit:    5,
-                minInterval:   TimeSpan.FromSeconds(1),
-                maxInterval:   TimeSpan.FromSeconds(30),
-                intervalDelta: TimeSpan.FromSeconds(2)));
+                cfg.UseMessageRetry(r => r.Exponential(
+                    retryLimit:    5,
+                    minInterval:   TimeSpan.FromSeconds(1),
+                    maxInterval:   TimeSpan.FromSeconds(30),
+                    intervalDelta: TimeSpan.FromSeconds(2)));
 
-            cfg.ConfigureEndpoints(context);
-        });
+                cfg.ConfigureEndpoints(context);
+            });
+        }
     });
 }
 

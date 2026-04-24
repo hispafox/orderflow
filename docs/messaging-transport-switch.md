@@ -83,5 +83,15 @@ Cuando el transport es `"InMemory"`, tampoco se registran:
 - Los mensajes son locales al proceso — **no hay comunicación real entre servicios**.
 - Los Sagas (M4.3) funcionan si todos los servicios implicados están en el mismo proceso, lo que no es el caso aquí. Para probar Sagas necesitas RabbitMQ.
 - Las pruebas de integración entre servicios (end-to-end) requieren RabbitMQ o un broker real.
+- **La demo SPA end-to-end necesita RabbitMQ** (el flujo crear pedido → reservar stock → pagar → confirmar cruza tres servicios).
 
 Para el desarrollo habitual de un servicio de forma aislada, InMemory es suficiente.
+
+---
+
+## Nota sobre la versión de MassTransit
+
+El proyecto está pinneado a **MassTransit 8.5.2**. La 9.x requiere
+licencia comercial y falla tanto en modo RabbitMQ como en InMemory con
+`MassTransit.ConfigurationException: License must be specified`. No
+actualizar — ver [Setup-Local.md](Setup-Local.md) sección 2.

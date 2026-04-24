@@ -130,6 +130,38 @@ Dos ajustes en el AppHost son necesarios para que la SPA pueda consumir los serv
 7. `/orders?status=Confirmed` filtra correctamente.
 8. Apagar `Products.API` → al refrescar `/products` aparece el `ErrorBanner` limpio (sin pantalla blanca).
 
+## Troubleshooting
+
+### "Consultando servicios…" se queda colgado
+
+El proxy de Vite no consigue alcanzar Orders.API o Products.API. Causas típicas:
+
+- **Aspire está arrancando todavía** (migraciones + seeds tardan ~30 s). Espera o mira el dashboard.
+- **Puertos no fijados**: comprueba que `Program.cs` del AppHost tiene los `.WithEndpoint("https", e => e.Port = 7153)` para Orders y `7200` para Products.
+- **RabbitMQ no disponible**: si el bus no arranca, el servicio falla y no sirve HTTP. Ver Setup-Local.
+
+### `MassTransit.ConfigurationException: License must be specified`
+
+Se ha colado MassTransit 9.x (comercial). Fuerza en todos los `.csproj`:
+```xml
+<PackageReference Include="MassTransit" Version="8.5.2" />
+<PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
+<PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.2" />
+<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.2" />
+```
+Luego `dotnet restore OrderFlow.slnx`.
+
+### Dashboard de Aspire pide token
+
+Añadir al `launchSettings.json` del AppHost:
+```json
+"DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS": "true"
+```
+
+### El puerto 7153 / 7200 está ocupado
+
+Otra instancia del servicio corriendo. Mata el proceso o cambia el puerto en `Program.cs` del AppHost **y** en `web/vite.config.ts`.
+
 ## Fuera de alcance
 
 - Tests (la demo es visual; podría añadirse Vitest + Testing Library más adelante).

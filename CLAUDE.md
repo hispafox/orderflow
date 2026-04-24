@@ -34,7 +34,7 @@
 | Dapper | 2.x | Read model (queries) |
 | MediatR | 12.x | CQRS + Pipeline Behaviors |
 | FluentValidation | 11.x | Validación de commands/requests |
-| MassTransit | 8.x | Mensajería asíncrona |
+| MassTransit | **8.5.2** (pinned) | Mensajería asíncrona — NO actualizar a 9.x (requiere licencia comercial) |
 | Polly | 8.x | Resiliencia (Retry, Circuit Breaker, Timeout) |
 | YARP | 2.x | Reverse Proxy para Gateway |
 | Serilog | 4.x | Structured logging |
@@ -560,6 +560,9 @@ Estas reglas son **inquebrantables**. Si algo contradice estas reglas, la regla 
 11. **No crear un DbContext compartido** — cada servicio tiene el suyo
 12. **No usar `Database.EnsureCreated()`** en producción — usar Migration Bundles
 13. **No usar Moq** — usar NSubstitute
+14. **No actualizar MassTransit a 9.x** — pinneado a **8.5.2**. La 9.x requiere licencia comercial (`MT_LICENSE`) y rompe el arranque con `MassTransit.ConfigurationException: License must be specified`. Si `dotnet outdated` sugiere subirlo, ignorarlo.
+
+Guía de instalación del entorno local en [docs/Setup-Local.md](docs/Setup-Local.md).
 
 ---
 

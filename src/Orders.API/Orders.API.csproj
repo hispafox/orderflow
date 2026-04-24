@@ -19,10 +19,10 @@
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-    <PackageReference Include="MassTransit" Version="9.1.0" />
-    <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="9.1.0" />
-    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.1.0" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
+    <PackageReference Include="MassTransit" Version="8.5.2" />
+    <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.2" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" Version="8.5.2" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
     <PackageReference Include="MediatR" Version="12.*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.*" />
