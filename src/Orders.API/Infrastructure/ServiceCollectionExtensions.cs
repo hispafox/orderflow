@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Orders.API.Domain.Interfaces;
 using Orders.API.Infrastructure.Persistence;
@@ -38,6 +39,10 @@ public static class ServiceCollectionExtensions
             {
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
+
+                // Tolerar pequeñas divergencias entre el snapshot y el modelo en dev
+                // (ej. diffs del schema de MassTransit Outbox al cambiar de versión).
+                options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
             }
         });
 

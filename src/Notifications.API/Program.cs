@@ -1,6 +1,7 @@
 using Azure.Identity;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Notifications.API.Consumers;
 using Notifications.API.Infrastructure;
 using Notifications.API.Infrastructure.Interceptors;
@@ -57,7 +58,10 @@ builder.Services.AddDbContext<NotificationDbContext>((sp, options) =>
     .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
 
     if (builder.Environment.IsDevelopment())
+    {
         options.EnableSensitiveDataLogging().EnableDetailedErrors();
+        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    }
 });
 
 // ─── Email service ────────────────────────────────────────────────────────────

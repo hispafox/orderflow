@@ -1,6 +1,7 @@
 using Azure.Identity;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Payments.API.Consumers;
 using Payments.API.Infrastructure;
 using Payments.API.Infrastructure.Interceptors;
@@ -55,7 +56,10 @@ builder.Services.AddDbContext<PaymentsDbContext>((sp, options) =>
     .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
 
     if (builder.Environment.IsDevelopment())
+    {
         options.EnableSensitiveDataLogging().EnableDetailedErrors();
+        options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    }
 });
 
 // ─── Payment Gateway ──────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ using FluentValidation;
 using MassTransit;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Products.API.API.Middleware;
 using Products.API.Domain.Interfaces;
@@ -90,7 +91,10 @@ try
         .AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
 
         if (builder.Environment.IsDevelopment())
+        {
             options.EnableSensitiveDataLogging().EnableDetailedErrors();
+            options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+        }
     });
 
     builder.Services.AddScoped<IProductRepository, SqlProductRepository>();
