@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using Dapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.API.DTOs;
 using Orders.API.API.DTOs.Requests;
@@ -137,6 +139,38 @@ public class OrdersController : ControllerBase
 
         await _mediator.Send(new CancelOrderCommand(id, request.Reason), ct);
         return NoContent();
+    }
+
+    // Demo-only: expone la tabla [orders].[OutboxMessage] de MassTransit para visualizar el
+    // patrón Outbox en vivo desde la SPA. No es una API de negocio — no la uses en producción.
+    [HttpGet("outbox/recent")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentOutbox(
+        [FromServices] IConfiguration configuration,
+        [FromQuery] int limit = 30,
+        CancellationToken ct = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        var connectionString = configuration.GetConnectionString("sqlserver")!;
+
+        await using var conn = new SqlConnection(connectionString);
+        const string sql = @"
+            SELECT TOP (@Limit)
+                SequenceNumber,
+                MessageId,
+                MessageType,
+                DestinationAddress,
+                SentTime,
+                EnqueueTime,
+                CorrelationId,
+                ConversationId
+            FROM [orders].[OutboxMessage]
+            ORDER BY SequenceNumber DESC";
+
+        var rows = await conn.QueryAsync(
+            new CommandDefinition(sql, new { Limit = safeLimit }, cancellationToken: ct));
+
+        return Ok(rows);
     }
 
     [HttpGet("{id:guid}/saga-state")]

@@ -128,3 +128,14 @@ export interface SagaState {
   createdAt: string;
   completedAt: string | null;
 }
+
+export interface OutboxMessageDto {
+  sequenceNumber: number;
+  messageId: string;
+  messageType: string;
+  destinationAddress: string | null;
+  sentTime: string;
+  enqueueTime: string | null;
+  correlationId: string | null;
+  conversationId: string | null;
+}

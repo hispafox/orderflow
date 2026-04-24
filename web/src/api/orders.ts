@@ -5,6 +5,7 @@ import type {
   OrderDto,
   OrderStatus,
   OrderSummaryDto,
+  OutboxMessageDto,
   PagedResult,
   SagaState,
 } from './types';
@@ -42,4 +43,8 @@ export function cancelOrder(id: string, body: CancelOrderRequest) {
 
 export function getSagaState(id: string, signal?: AbortSignal) {
   return request<SagaState>(`/api/orders/${id}/saga-state`, { signal });
+}
+
+export function getRecentOutbox(limit = 30, signal?: AbortSignal) {
+  return request<OutboxMessageDto[]>(`/api/orders/outbox/recent?limit=${limit}`, { signal });
 }
