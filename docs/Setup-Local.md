@@ -52,8 +52,23 @@ Connection string por defecto: `Server=(localdb)\\MSSQLLocalDB;Trusted_Connectio
 ### 1.3 RabbitMQ (nativo, sin Docker)
 
 **Opción A — Chocolatey (recomendada):**
+
+Si no tienes Chocolatey instalado, primero instálalo (una sola vez):
+
+1. Abre **PowerShell como administrador** (click derecho en el icono → *Ejecutar como administrador*).
+2. Ejecuta:
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force
+   [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+   iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+   ```
+3. Cierra y vuelve a abrir PowerShell (como admin) para refrescar el `PATH`.
+4. Verifica: `choco --version` → debe devolver una versión.
+
+Fuente oficial: <https://chocolatey.org/install>.
+
+Con Chocolatey listo, instala Erlang y RabbitMQ (PowerShell **admin**):
 ```powershell
-# como administrador
 choco install erlang -y
 choco install rabbitmq -y
 ```
