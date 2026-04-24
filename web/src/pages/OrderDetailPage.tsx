@@ -17,7 +17,7 @@ import OutboxPanel from '../components/OutboxPanel';
 import { ApiError } from '../api/client';
 
 const TERMINAL_SAGA_STATES = new Set(['Confirmed', 'Cancelled', 'Failed']);
-const TERMINAL_ORDER_STATES: OrderStatus[] = ['Confirmed', 'Cancelled', 'Delivered'];
+const TERMINAL_ORDER_STATES: OrderStatus[] = ['Confirmed', 'Cancelled', 'Delivered', 'Failed'];
 
 export default function OrderDetailPage() {
   const { id = '' } = useParams();

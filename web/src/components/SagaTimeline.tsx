@@ -10,7 +10,7 @@ interface Step {
   timestamp?: string | null;
 }
 
-const TERMINAL_ORDER_STATES: OrderStatus[] = ['Confirmed', 'Cancelled', 'Delivered'];
+const TERMINAL_ORDER_STATES: OrderStatus[] = ['Confirmed', 'Cancelled', 'Delivered', 'Failed'];
 
 function buildStepsFromSaga(saga: SagaState): Step[] {
   const state = saga.state;
@@ -65,7 +65,22 @@ function buildStepsFromSaga(saga: SagaState): Step[] {
 function buildStepsFromOrder(order: OrderDto): Step[] {
   const isConfirmed = order.status === 'Confirmed' || order.status === 'Shipped' || order.status === 'Delivered';
   const isCancelled = order.status === 'Cancelled';
-  const terminalStatus: StepStatus = isConfirmed ? 'done' : isCancelled ? 'cancelled' : 'pending';
+  const isFailed    = order.status === 'Failed';
+
+  const terminalStatus: StepStatus = isConfirmed
+    ? 'done'
+    : isCancelled
+    ? 'cancelled'
+    : isFailed
+    ? 'failed'
+    : 'pending';
+
+  // En el flujo de fallo por PaymentFailed, el stock se reservó y luego se compensó.
+  // En el flujo de fallo por StockInsufficient, el stock nunca se descontó.
+  // No podemos distinguir los dos solo por el Order, así que describimos genérico.
+  const stockStepStatus: StepStatus = isFailed ? 'done' : terminalStatus;
+  const paymentStepStatus: StepStatus = isFailed ? 'failed' : terminalStatus;
+
   const terminalTs = order.confirmedAt ?? order.cancelledAt ?? null;
 
   return [
@@ -81,8 +96,10 @@ function buildStepsFromOrder(order: OrderDto): Step[] {
       label: 'Reserva de stock',
       description: isCancelled
         ? 'Compensado por el Saga al cancelar'
+        : isFailed
+        ? 'Reservada y luego liberada (compensación)'
         : 'Products.API reservó las unidades del inventario',
-      status: terminalStatus,
+      status: stockStepStatus,
     },
     {
       key: 'payment',
@@ -91,13 +108,21 @@ function buildStepsFromOrder(order: OrderDto): Step[] {
         ? 'Payments.API confirmó el cobro'
         : isCancelled
         ? 'Sin cargo (pedido cancelado)'
+        : isFailed
+        ? order.cancellationReason ?? 'Payments.API rechazó el cobro'
         : 'Payments.API valida el cobro',
-      status: terminalStatus,
+      status: paymentStepStatus,
     },
     {
       key: 'confirmed',
-      label: isCancelled ? 'Pedido cancelado' : 'Pedido confirmado',
-      description: isCancelled
+      label: isFailed
+        ? 'Pedido fallido'
+        : isCancelled
+        ? 'Pedido cancelado'
+        : 'Pedido confirmado',
+      description: isFailed
+        ? 'Evento OrderFailed publicado · Saga finalizada'
+        : isCancelled
         ? order.cancellationReason ?? 'Cancelado desde la UI'
         : 'Evento OrderConfirmed publicado · Saga finalizada',
       status: terminalStatus,

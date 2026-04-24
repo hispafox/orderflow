@@ -6,6 +6,7 @@ const styles: Record<OrderStatus, string> = {
   Shipped: 'bg-sky-100 text-sky-800 ring-sky-200',
   Delivered: 'bg-violet-100 text-violet-800 ring-violet-200',
   Cancelled: 'bg-red-100 text-red-800 ring-red-200',
+  Failed: 'bg-rose-100 text-rose-800 ring-rose-200',
 };
 
 const labels: Record<OrderStatus, string> = {
@@ -14,6 +15,7 @@ const labels: Record<OrderStatus, string> = {
   Shipped: 'Enviado',
   Delivered: 'Entregado',
   Cancelled: 'Cancelado',
+  Failed: 'Fallido',
 };
 
 interface StatusBadgeProps {

@@ -3,7 +3,8 @@ export type OrderStatus =
   | 'Confirmed'
   | 'Shipped'
   | 'Delivered'
-  | 'Cancelled';
+  | 'Cancelled'
+  | 'Failed';
 
 export interface PagedResult<T> {
   items: T[];

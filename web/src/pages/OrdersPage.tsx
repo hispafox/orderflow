@@ -9,7 +9,7 @@ import ErrorBanner from '../components/ErrorBanner';
 import StatusBadge from '../components/StatusBadge';
 
 const PAGE_SIZE = 20;
-const STATUSES: OrderStatus[] = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+const STATUSES: OrderStatus[] = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Failed'];
 
 export default function OrdersPage() {
   const [page, setPage] = useState(1);
