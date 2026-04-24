@@ -1,0 +1,29 @@
+{
+  "name": "orderflow",
+  "rootDirectory": "",
+  "chromePath": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "chromeProfile": "C:\\Users\\hispa\\AppData\\Local\\Google\\Chrome\\User Data\\orderflow Dev",
+  "startupTimeoutSeconds": 60,
+  "projects": [
+    {
+      "name": "Aspire AppHost (backend completo)",
+      "workingDirectory": "infrastructure\\OrderFlow.AppHost",
+      "command": "dotnet",
+      "arguments": "run --launch-profile https",
+      "url": "https://localhost:17149",
+      "healthCheckUrl": "https://localhost:17149",
+      "openUrl": "https://localhost:17149"
+    },
+    {
+      "name": "orderflow-web (SPA demo)",
+      "workingDirectory": "web",
+      "command": "cmd",
+      "arguments": "/c npm run dev",
+      "url": "http://localhost:5173",
+      "healthCheckUrl": "http://localhost:5173",
+      "openUrl": "http://localhost:5173"
+    }
+  ],
+  "createdAt": "2026-04-24T11:08:43.3162439+02:00",
+  "lastUsedAt": "2026-04-24T11:10:55.5641439+02:00"
+}
