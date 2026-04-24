@@ -84,6 +84,17 @@ choco install erlang -y
 choco install rabbitmq -y
 ```
 
+> **Si ya tienes Erlang instalado** (p. ej. lo instaló otra herramienta o un MSI anterior), el segundo comando fallará con:
+> ```
+> A newer version of erlang (vXX.X.X) is already installed.
+> Failed to install rabbitmq because a previous dependency failed.
+> ```
+> Es porque choco considera Erlang dependencia del paquete de RabbitMQ y, si la dependencia "falla", cancela todo. Salta la dependencia:
+> ```powershell
+> choco install rabbitmq -y --ignore-dependencies
+> ```
+> RabbitMQ moderno soporta Erlang 26+, así que una versión más nueva ya instalada funcionará perfectamente.
+
 **Opción B — Instaladores MSI:**
 1. Erlang/OTP: <https://www.erlang.org/downloads> (descarga el MSI de 64-bit).
 2. RabbitMQ Server: <https://www.rabbitmq.com/install-windows.html> (MSI oficial).
