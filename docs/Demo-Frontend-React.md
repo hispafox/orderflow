@@ -85,6 +85,40 @@ Terminal 2:  cd web && npm install   (solo primera vez)
 
 Abre `http://localhost:5173`.
 
+### Requisitos del AppHost para que la demo funcione
+
+Dos ajustes en el AppHost son necesarios para que la SPA pueda consumir los servicios a través del proxy de Vite:
+
+1. **Puertos HTTPS fijos** para Orders.API (7153) y Products.API (7200).
+   Aspire, por defecto, ignora `applicationUrl` de cada child project y les
+   asigna puertos dinámicos. Para que el proxy de Vite pueda apuntar a
+   puertos conocidos, el AppHost los fija explícitamente:
+
+   ```csharp
+   // infrastructure/OrderFlow.AppHost/Program.cs
+   var products = builder
+       .AddProject<Projects.Products_API>("products-api")
+       .WithEndpoint("https", e => e.Port = 7200)
+       // …
+
+   var orders = builder.AddProject<Projects.Orders_API>("orders-api")
+       .WithEndpoint("https", e => e.Port = 7153)
+       // …
+   ```
+
+   Si cambias estos puertos, hay que actualizar también
+   [web/vite.config.ts](../web/vite.config.ts).
+
+2. **Dashboard de Aspire sin token** en desarrollo, mediante variable de
+   entorno en el `launchSettings.json` del AppHost:
+
+   ```json
+   "DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS": "true"
+   ```
+
+   Sin esto, Aspire pide un token por URL cada vez que arrancas, lo que
+   incomoda los lanzadores automáticos (p. ej. DevLauncher).
+
 ## Verificación end-to-end
 
 1. `/` muestra KPIs no nulos → proxies OK a ambos servicios.

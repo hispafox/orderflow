@@ -14,9 +14,10 @@ var productsDbConn      = builder.Configuration.GetConnectionString("productsDb"
 var paymentsDbConn      = builder.Configuration.GetConnectionString("paymentsDb");
 var notificationsDbConn = builder.Configuration.GetConnectionString("notificationsDb");
 
-// Products.API
+// Products.API — puerto HTTPS fijo en 7200 para que la SPA (Vite proxy) pueda consumirlo
 var products = builder
     .AddProject<Projects.Products_API>("products-api")
+    .WithEndpoint("https", e => e.Port = 7200)
     .WithEnvironment("ConnectionStrings__sqlserver", productsDbConn)
     .WithReference(messaging);
 
@@ -32,8 +33,9 @@ var payments = builder
     .WithEnvironment("ConnectionStrings__sqlserver", paymentsDbConn)
     .WithReference(messaging);
 
-// Orders.API
+// Orders.API — puerto HTTPS fijo en 7153 para que la SPA (Vite proxy) pueda consumirlo
 var orders = builder.AddProject<Projects.Orders_API>("orders-api")
+    .WithEndpoint("https", e => e.Port = 7153)
     .WithEnvironment("ConnectionStrings__sqlserver", ordersDbConn)
     .WithReference(messaging)
     .WithReference(products);
