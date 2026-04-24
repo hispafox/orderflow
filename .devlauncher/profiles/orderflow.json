@@ -22,8 +22,17 @@
       "url": "http://localhost:5173",
       "healthCheckUrl": "http://localhost:5173",
       "openUrl": "http://localhost:5173"
+    },
+    {
+      "name": "RabbitMQ Management UI",
+      "workingDirectory": "",
+      "command": "powershell",
+      "arguments": "-NoLogo -NoProfile -Command \"$svc = Get-Service RabbitMQ -ErrorAction SilentlyContinue; if (-not $svc) { Write-Host 'RabbitMQ service NOT installed.' -ForegroundColor Red; exit 1 }; if ($svc.Status -ne 'Running') { Write-Host ('RabbitMQ status: ' + $svc.Status + ' (debería ser Running).') -ForegroundColor Red; exit 1 }; Write-Host 'RabbitMQ Running. Management UI: http://localhost:15672 (guest/guest)' -ForegroundColor Green; while ($true) { Start-Sleep -Seconds 3600 }\"",
+      "url": "http://localhost:15672",
+      "healthCheckUrl": "http://localhost:15672",
+      "openUrl": "http://localhost:15672/#/"
     }
   ],
   "createdAt": "2026-04-24T11:08:43.3162439+02:00",
-  "lastUsedAt": "2026-04-24T11:10:55.5641439+02:00"
+  "lastUsedAt": "2026-04-24T11:32:50.4309633+02:00"
 }
