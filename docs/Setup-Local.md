@@ -94,12 +94,63 @@ choco install rabbitmq -y
    net start RabbitMQ
    ```
 
-Verificación:
-- El servicio `RabbitMQ` está en estado *Running* (`services.msc`).
-- Puerto AMQP `5672` responde.
-- Consola de management: <http://localhost:15672> (usuario/contraseña por defecto: `guest` / `guest`).
+#### Verificación desde PowerShell
+
+Abre PowerShell (no hace falta admin para consultar, sí para arrancar/parar).
+
+**1) ¿Existe el servicio y está corriendo?**
+```powershell
+Get-Service -Name RabbitMQ
+```
+- `Status = Running` → OK.
+- `Status = Stopped` → arráncalo (admin): `Start-Service RabbitMQ`.
+- *"Cannot find any service with service name 'RabbitMQ'"* → no está instalado, vuelve al paso A o B.
+
+**2) ¿Está escuchando el puerto AMQP (5672)?**
+```powershell
+Test-NetConnection -ComputerName localhost -Port 5672
+```
+Busca `TcpTestSucceeded : True`. Si es `False`, el servicio no ha arrancado o hay un firewall/otro proceso bloqueándolo.
+
+Atajo si `Test-NetConnection` tarda o no lo tienes:
+```powershell
+(Get-NetTCPConnection -LocalPort 5672 -ErrorAction SilentlyContinue).State
+# Esperado: Listen
+```
+
+**3) ¿Responde la consola de management (15672)?**
+```powershell
+Invoke-WebRequest http://localhost:15672 -UseBasicParsing |
+    Select-Object StatusCode, StatusDescription
+```
+- `200 OK` → funciona. Abre <http://localhost:15672> (user/pass: `guest` / `guest`).
+- Conexión rechazada → falta el plugin de management. Actívalo (admin):
+  ```powershell
+  & "C:\Program Files\RabbitMQ Server\rabbitmq_server-*\sbin\rabbitmq-plugins.bat" enable rabbitmq_management
+  Restart-Service RabbitMQ
+  ```
+
+**4) Diagnóstico avanzado con `rabbitmqctl`**
+```powershell
+& "C:\Program Files\RabbitMQ Server\rabbitmq_server-*\sbin\rabbitmqctl.bat" status
+& "C:\Program Files\RabbitMQ Server\rabbitmq_server-*\sbin\rabbitmqctl.bat" list_connections
+& "C:\Program Files\RabbitMQ Server\rabbitmq_server-*\sbin\rabbitmqctl.bat" list_queues
+```
+Útil cuando el servicio está Running pero los consumers no reciben mensajes.
+
+**5) One-liner "¿está todo bien?"**
+```powershell
+@{
+  Servicio = (Get-Service RabbitMQ -ErrorAction SilentlyContinue).Status
+  Puerto5672 = (Test-NetConnection localhost -Port 5672 -WarningAction SilentlyContinue).TcpTestSucceeded
+  Management = try { (Invoke-WebRequest http://localhost:15672 -UseBasicParsing -TimeoutSec 3).StatusCode } catch { 'KO' }
+}
+```
+Debería salir `Running / True / 200`.
 
 Connection string usada por el proyecto: `amqp://guest:guest@localhost:5672`.
+
+> Si algo de lo anterior falla y no quieres perder tiempo en clase, activa el modo **InMemory** (sección 5 del troubleshooting).
 
 > Si **no puedes/quieres** instalar RabbitMQ, existe un flag `InMemory` por servicio.
 > Ver detalles en [messaging-transport-switch.md](messaging-transport-switch.md).
