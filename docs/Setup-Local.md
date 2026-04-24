@@ -67,6 +67,17 @@ Si no tienes Chocolatey instalado, primero instálalo (una sola vez):
 
 Fuente oficial: <https://chocolatey.org/install>.
 
+> **Si `Set-ExecutionPolicy` falla o da una advertencia**, suele ser por una Group Policy o por un mensaje de confirmación:
+>
+> - *"Set-ExecutionPolicy : Windows PowerShell updated your execution policy successfully, but the setting is overridden by a policy…"* — tu empresa ha fijado la política por GPO. El comando anterior usa `-Scope Process`, que solo afecta a la sesión actual y no requiere cambiar la política del sistema, así que **puedes ignorar el mensaje y continuar**.
+> - Diagnóstico: `Get-ExecutionPolicy -List` muestra la política efectiva por scope. Si `MachinePolicy` o `UserPolicy` están en `AllSigned` o `Restricted` no se pueden sobrescribir, pero `Process` sí.
+> - Si te pide confirmación (Y/N), responde `Y` o añade `-Force` al comando.
+> - Como último recurso, descarga el instalador y ejecútalo manualmente:
+>   ```powershell
+>   Invoke-WebRequest -Uri https://community.chocolatey.org/install.ps1 -OutFile $env:TEMP\choco-install.ps1
+>   powershell -ExecutionPolicy Bypass -File $env:TEMP\choco-install.ps1
+>   ```
+
 Con Chocolatey listo, instala Erlang y RabbitMQ (PowerShell **admin**):
 ```powershell
 choco install erlang -y
