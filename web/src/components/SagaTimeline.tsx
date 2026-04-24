@@ -14,49 +14,86 @@ const TERMINAL_ORDER_STATES: OrderStatus[] = ['Confirmed', 'Cancelled', 'Deliver
 
 function buildStepsFromSaga(saga: SagaState): Step[] {
   const state = saga.state;
-  const isTerminalConfirmed = state === 'Confirmed';
-  const isCancelled = state === 'Cancelled';
-  const isFailed = state === 'Failed';
 
-  const mark = (thresholds: string[], currentActiveOn: string): StepStatus => {
-    if (isCancelled) return thresholds.includes(state) ? 'done' : 'cancelled';
-    if (isFailed && !thresholds.includes(state)) return 'failed';
-    if (thresholds.includes(state)) return 'done';
-    if (state === currentActiveOn) return 'active';
-    return 'pending';
-  };
+  // Estados reales del saga (ver Orders.API/Sagas/OrderSaga.cs):
+  //   Initial → Pending → PaymentProcessing → Completed            (happy path)
+  //   Pending → Failed                                              (StockInsufficient)
+  //   PaymentProcessing → Compensating → Failed                     (PaymentFailed)
+  const isInitial       = state === 'Initial';
+  const isPending       = state === 'Pending';
+  const isPaymentProc   = state === 'PaymentProcessing';
+  const isCompensating  = state === 'Compensating';
+  const isCompleted     = state === 'Completed';
+  const isFailed        = state === 'Failed';
+
+  // Reserva de stock: completada en cuanto la saga avanza más allá de Pending.
+  const stockStatus: StepStatus =
+    isCompleted || isPaymentProc || isCompensating ? 'done' :
+    isPending ? 'active' :
+    isFailed ? 'done' :      // asumimos que sí se reservó (no distinguimos StockInsufficient puro)
+    'pending';
+
+  // Procesamiento de pago: done si llegó a Completed; active mientras PaymentProcessing;
+  // failed si compensando o en estado Failed tras compensación.
+  const paymentStatus: StepStatus =
+    isCompleted ? 'done' :
+    isPaymentProc ? 'active' :
+    isCompensating || isFailed ? 'failed' :
+    'pending';
+
+  // Confirmación: done solo si Completed, failed si terminó mal, pending si aún en curso.
+  const confirmedStatus: StepStatus =
+    isCompleted ? 'done' :
+    isFailed ? 'failed' :
+    isCompensating ? 'failed' :
+    'pending';
+
+  const confirmedLabel =
+    isFailed || isCompensating ? 'Pedido fallido' :
+    'Pedido confirmado';
+
+  const confirmedDescription =
+    isCompleted      ? 'Evento OrderConfirmed publicado' :
+    isCompensating   ? 'Compensando stock · saga liberará lo reservado' :
+    isFailed         ? saga.failureReason ?? 'Saga terminó en fallo' :
+    isPaymentProc    ? 'Esperando resultado del cobro…' :
+    'Evento OrderConfirmed publicado';
 
   return [
     {
       key: 'created',
       label: 'Pedido creado',
-      description: 'La orden fue aceptada por Orders.API',
+      description: isInitial
+        ? 'Saga recibió OrderCreated, arrancando…'
+        : 'La orden fue aceptada por Orders.API',
       status: 'done',
       timestamp: saga.createdAt,
     },
     {
       key: 'stock',
       label: 'Reserva de stock',
-      description: 'Products.API reserva unidades del inventario',
-      status: mark(['AwaitingPayment', 'Confirmed'], 'AwaitingStock'),
+      description: isPending
+        ? 'Products.API procesando ReserveStock…'
+        : 'Products.API reservó las unidades del inventario',
+      status: stockStatus,
     },
     {
       key: 'payment',
       label: 'Procesamiento de pago',
       description: saga.paymentId
         ? `Payments.API · id ${saga.paymentId.slice(0, 8)}…`
+        : isPaymentProc
+        ? 'Payments.API está procesando el cobro…'
+        : isCompensating
+        ? 'Pago rechazado — compensando'
         : 'Payments.API valida el cobro',
-      status: mark(['Confirmed'], 'AwaitingPayment'),
+      status: paymentStatus,
     },
     {
       key: 'confirmed',
-      label: 'Pedido confirmado',
-      description: isCancelled
-        ? 'Saga terminó en cancelación'
-        : isFailed
-        ? saga.failureReason ?? 'Saga terminó en fallo'
-        : 'Evento OrderConfirmed publicado',
-      status: isTerminalConfirmed ? 'done' : isCancelled ? 'cancelled' : isFailed ? 'failed' : 'pending',
+      label: confirmedLabel,
+      description: confirmedDescription,
+      status: confirmedStatus,
       timestamp: saga.completedAt,
     },
   ];

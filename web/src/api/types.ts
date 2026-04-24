@@ -112,12 +112,14 @@ export interface CancelOrderRequest {
   reason: string;
 }
 
+// Estados reales de OrderSaga (ver src/Orders.API/Sagas/OrderSaga.cs).
+// 'Initial' es el estado implícito de MassTransit antes de consumir OrderCreated.
 export type SagaCurrentState =
   | 'Initial'
-  | 'AwaitingStock'
-  | 'AwaitingPayment'
-  | 'Confirmed'
-  | 'Cancelled'
+  | 'Pending'
+  | 'PaymentProcessing'
+  | 'Compensating'
+  | 'Completed'
   | 'Failed'
   | string;
 
