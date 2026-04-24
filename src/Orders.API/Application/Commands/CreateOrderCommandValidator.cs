@@ -29,7 +29,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
             item.RuleFor(i => i.ProductName)
                 .NotEmpty()
                 .MaximumLength(200)
-                .Matches(@"^[^<>""'&]+$")
+                .Matches(@"^[^<>&]+$")
                 .WithMessage("ProductName contains invalid characters");
 
             item.RuleFor(i => i.Quantity)
