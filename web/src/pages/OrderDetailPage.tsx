@@ -14,6 +14,7 @@ import ErrorBanner from '../components/ErrorBanner';
 import StatusBadge from '../components/StatusBadge';
 import SagaTimeline from '../components/SagaTimeline';
 import OutboxPanel from '../components/OutboxPanel';
+import EventLogPanel from '../components/EventLogPanel';
 import { ApiError } from '../api/client';
 
 const TERMINAL_SAGA_STATES = new Set(['Confirmed', 'Cancelled', 'Failed']);
@@ -229,6 +230,12 @@ export default function OrderDetailPage() {
               isSagaMissing={isSagaMissing}
             />
           )}
+          <EventLogPanel
+            correlationId={order.id}
+            poll={!TERMINAL_ORDER_STATES.includes(order.status)}
+            title="Eventos del pedido"
+            limit={100}
+          />
           <OutboxPanel correlationId={order.id} poll={!TERMINAL_ORDER_STATES.includes(order.status)} />
         </aside>
       </div>

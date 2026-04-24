@@ -17,3 +17,10 @@ export function listProducts(params: ListProductsParams = {}, signal?: AbortSign
 export function getProduct(id: string, signal?: AbortSignal) {
   return request<ProductResponse>(`/api/products/${id}`, { signal });
 }
+
+export function updateProductStock(id: string, newStock: number) {
+  return request<void>(`/api/products/${id}/stock`, {
+    method: 'PUT',
+    body: { newStock },
+  });
+}

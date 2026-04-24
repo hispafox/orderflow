@@ -10,6 +10,7 @@ using Orders.API.API.DTOs.Requests;
 using Orders.API.API.DTOs.Responses;
 using Orders.API.Application.Commands;
 using Orders.API.Application.Queries;
+using Orders.API.Infrastructure.Messaging;
 using Orders.API.Infrastructure.Persistence;
 using Orders.API.Sagas;
 
@@ -170,6 +171,22 @@ public class OrdersController : ControllerBase
         var rows = await conn.QueryAsync(
             new CommandDefinition(sql, new { Limit = safeLimit }, cancellationToken: ct));
 
+        return Ok(rows);
+    }
+
+    // Historial persistente de eventos publicados/consumidos por Orders.API.
+    // Poblado por los observers DemoEventPublishObserver / DemoEventConsumeObserver.
+    // A diferencia de /outbox/recent (que solo ve el Outbox MT antes de publicarse),
+    // este endpoint retiene todo el histórico incluso tras el cleanup del Outbox.
+    [HttpGet("events/log")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetEventLog(
+        [FromServices] IDemoEventLogRepository repo,
+        [FromQuery] Guid? correlationId = null,
+        [FromQuery] int limit = 100,
+        CancellationToken ct = default)
+    {
+        var rows = await repo.GetRecentAsync(correlationId, limit, ct);
         return Ok(rows);
     }
 

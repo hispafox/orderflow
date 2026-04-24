@@ -2,6 +2,7 @@ import { request } from './client';
 import type {
   CancelOrderRequest,
   CreateOrderRequest,
+  EventLogEntryDto,
   OrderDto,
   OrderStatus,
   OrderSummaryDto,
@@ -47,4 +48,15 @@ export function getSagaState(id: string, signal?: AbortSignal) {
 
 export function getRecentOutbox(limit = 30, signal?: AbortSignal) {
   return request<OutboxMessageDto[]>(`/api/orders/outbox/recent?limit=${limit}`, { signal });
+}
+
+export function getEventLog(
+  params: { correlationId?: string; limit?: number } = {},
+  signal?: AbortSignal,
+) {
+  const search = new URLSearchParams();
+  if (params.correlationId) search.set('correlationId', params.correlationId);
+  if (params.limit !== undefined) search.set('limit', String(params.limit));
+  const qs = search.toString();
+  return request<EventLogEntryDto[]>(`/api/orders/events/log${qs ? `?${qs}` : ''}`, { signal });
 }

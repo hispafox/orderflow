@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Orders.API.Domain.Entities;
 using Orders.API.Infrastructure.Audit;
+using Orders.API.Infrastructure.Messaging;
 using Orders.API.Infrastructure.Persistence.ReadModel;
 using Orders.API.Sagas;
 
@@ -24,6 +25,10 @@ public class OrderDbContext : DbContext
 
     // Read Model — alimentado por proyectores, consultado por Dapper
     public DbSet<OrderSummary> OrderSummaries => Set<OrderSummary>();
+
+    // Historial persistente de eventos pasando por MassTransit (demo).
+    // Poblado por los observers en Infrastructure/Messaging. Lectura via Dapper.
+    public DbSet<DemoEventLog> DemoEventLog => Set<DemoEventLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

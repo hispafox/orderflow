@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Orders.API.Sagas;
+using Orders.API.Infrastructure.Messaging;
 using Microsoft.Extensions.Http.Resilience;
 using Orders.API.Application.Behaviors;
 using Orders.API.Infrastructure;
@@ -85,6 +86,13 @@ try
             .AddMeter("Microsoft.EntityFrameworkCore"));
 
     builder.Services.AddSingleton<OrdersMetrics>();
+
+    // ─── Demo Event Log (persistent audit of MassTransit traffic) ────────────
+    // Observers que registran cada publish/consume en [orders].[DemoEventLog]
+    // para poder inspeccionarlo desde la SPA mucho después del flujo real.
+    builder.Services.AddScoped<IDemoEventLogRepository, DemoEventLogRepository>();
+    builder.Services.AddSingleton<DemoEventPublishObserver>();
+    builder.Services.AddSingleton<DemoEventConsumeObserver>();
 
     // ─── Validación del DI container en desarrollo ────────────────────────────
     builder.Host.UseDefaultServiceProvider(options =>
@@ -432,6 +440,17 @@ try
     }
 
     var app = builder.Build();
+
+    // ─── Conectar observers demo al bus MassTransit ─────────────────────────
+    // No se hacen en Testing porque el BusControl se crea condicionalmente.
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        var busControl     = app.Services.GetRequiredService<IBusControl>();
+        var publishObs     = app.Services.GetRequiredService<DemoEventPublishObserver>();
+        var consumeObs     = app.Services.GetRequiredService<DemoEventConsumeObserver>();
+        busControl.ConnectPublishObserver(publishObs);
+        busControl.ConnectConsumeObserver(consumeObs);
+    }
 
     // ─── Pipeline ─────────────────────────────────────────────────────────────
     app.UseMiddleware<DomainExceptionMiddleware>(); // ← PRIMERO: captura excepciones de dominio

@@ -142,3 +142,18 @@ export interface OutboxMessageDto {
   correlationId: string | null;
   conversationId: string | null;
 }
+
+export type EventLogDirection = 'Published' | 'Consumed' | string;
+
+export interface EventLogEntryDto {
+  id: number;
+  occurredAt: string;
+  direction: EventLogDirection;
+  messageType: string;
+  destinationAddress: string | null;
+  sourceAddress: string | null;
+  messageId: string | null;
+  correlationId: string | null;
+  conversationId: string | null;
+  serviceName: string;
+}
