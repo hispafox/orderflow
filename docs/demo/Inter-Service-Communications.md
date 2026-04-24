@@ -283,7 +283,7 @@ Schedule(() => ReservationTimeout, x => x.ReservationTimeoutTokenId, s =>
 
 ## 7. Máquina de estados del Saga
 
-Visualización del `OrderSaga` de [src/Orders.API/Sagas/OrderSaga.cs](../src/Orders.API/Sagas/OrderSaga.cs):
+Visualización del `OrderSaga` de [src/Orders.API/Sagas/OrderSaga.cs](../../src/Orders.API/Sagas/OrderSaga.cs):
 
 ```mermaid
 stateDiagram-v2
@@ -338,7 +338,7 @@ sequenceDiagram
 - Reintentos automáticos si RabbitMQ está temporalmente caído — MassTransit vuelve a leer la outbox.
 - Se limpia sólo (`OutboxCleanupJob`) para no inflar la tabla.
 
-Configurado en [src/Orders.API/Program.cs](../src/Orders.API/Program.cs):
+Configurado en [src/Orders.API/Program.cs](../../src/Orders.API/Program.cs):
 ```csharp
 x.AddEntityFrameworkOutbox<OrderDbContext>(o =>
 {
@@ -386,7 +386,7 @@ flowchart LR
 
 Cada petición HTTP genera un `X-Correlation-Id` (GUID v4). El middleware `CorrelationIdMiddleware` de cada servicio:
 
-1. Lee el header si viene del cliente (la SPA lo inyecta en [`web/src/api/client.ts`](../web/src/api/client.ts)).
+1. Lee el header si viene del cliente (la SPA lo inyecta en [`web/src/api/client.ts`](../../web/src/api/client.ts)).
 2. Si no, genera uno nuevo.
 3. Lo inyecta en el `LogContext` de Serilog → aparece en todos los logs de la petición.
 4. Lo añade al header de respuesta → el cliente lo puede usar para soporte.
@@ -422,7 +422,7 @@ flowchart TB
     TO --> HTTP[Products.API]
 ```
 
-Configurada en [src/Orders.API/Program.cs](../src/Orders.API/Program.cs) con `AddResilienceHandler("products-pipeline")`. Orden, de dentro a fuera: **Timeout → Retry → CircuitBreaker → Fallback**. Cuando el circuito está abierto o el timeout se consume, el fallback devuelve un `503 ServiceUnavailable` falso en lugar de una excepción, para que el handler decida cómo tratar la degradación.
+Configurada en [src/Orders.API/Program.cs](../../src/Orders.API/Program.cs) con `AddResilienceHandler("products-pipeline")`. Orden, de dentro a fuera: **Timeout → Retry → CircuitBreaker → Fallback**. Cuando el circuito está abierto o el timeout se consume, el fallback devuelve un `503 ServiceUnavailable` falso en lugar de una excepción, para que el handler decida cómo tratar la degradación.
 
 ---
 
@@ -464,7 +464,7 @@ Ver también [messaging-transport-switch.md](messaging-transport-switch.md) para
 
 - [docs/Setup-Local.md](Setup-Local.md) — instalación del entorno (RabbitMQ, LocalDB, etc.).
 - [docs/messaging-transport-switch.md](messaging-transport-switch.md) — switch InMemory/RabbitMQ.
-- [docs/M4.2-Mensajeria-MassTransit-Gamma.md](M4.2-Mensajeria-MassTransit-Gamma.md) — módulo del curso sobre MassTransit.
-- [docs/M4.3-Saga-Pattern-Gamma.md](M4.3-Saga-Pattern-Gamma.md) — módulo del curso sobre el Saga Pattern.
-- [docs/M6.2-Outbox-Pattern-Gamma.md](M6.2-Outbox-Pattern-Gamma.md) — módulo del curso sobre Outbox.
+- [docs/M4.2-Mensajeria-MassTransit-Gamma.md](../M4.2-Mensajeria-MassTransit-Gamma.md) — módulo del curso sobre MassTransit.
+- [docs/M4.3-Saga-Pattern-Gamma.md](../M4.3-Saga-Pattern-Gamma.md) — módulo del curso sobre el Saga Pattern.
+- [docs/M6.2-Outbox-Pattern-Gamma.md](../M6.2-Outbox-Pattern-Gamma.md) — módulo del curso sobre Outbox.
 - [docs/Demo-Frontend-React.md](Demo-Frontend-React.md) — cómo la SPA demo consume esta API.

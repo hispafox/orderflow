@@ -562,7 +562,7 @@ Estas reglas son **inquebrantables**. Si algo contradice estas reglas, la regla 
 13. **No usar Moq** — usar NSubstitute
 14. **No actualizar MassTransit a 9.x** — pinneado a **8.5.2**. La 9.x requiere licencia comercial (`MT_LICENSE`) y rompe el arranque con `MassTransit.ConfigurationException: License must be specified`. Si `dotnet outdated` sugiere subirlo, ignorarlo.
 
-Guía de instalación del entorno local en [docs/Setup-Local.md](docs/Setup-Local.md).
+Guía de instalación del entorno local en [docs/demo/Setup-Local.md](docs/demo/Setup-Local.md).
 
 ---
 

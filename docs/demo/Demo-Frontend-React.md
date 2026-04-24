@@ -14,7 +14,7 @@ La demo es puramente *read+mutate* sobre los endpoints ya existentes. **No requi
 
 ## Ubicación
 
-- Código fuente: [web/](../web/)
+- Código fuente: [web/](../../web/)
 - Rama: `frontend` (derivada de `main`)
 
 ## Stack
@@ -107,7 +107,7 @@ Dos ajustes en el AppHost son necesarios para que la SPA pueda consumir los serv
    ```
 
    Si cambias estos puertos, hay que actualizar también
-   [web/vite.config.ts](../web/vite.config.ts).
+   [web/vite.config.ts](../../web/vite.config.ts).
 
 2. **Dashboard de Aspire sin token** en desarrollo, mediante variable de
    entorno en el `launchSettings.json` del AppHost:

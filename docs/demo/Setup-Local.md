@@ -271,7 +271,7 @@ Ver detalles completos en la **sección 7** de este documento.
 - **No usar Docker** — LocalDB y RabbitMQ se instalan nativamente.
 - **No usar `builder.AddSqlServer()` ni `builder.AddRabbitMQ()`** en el AppHost — siempre `AddConnectionString()`.
 - **No actualizar MassTransit a 9.x** — pinneado a 8.5.2 por el tema de licencia.
-- El resto de reglas están en [CLAUDE.md](../CLAUDE.md) sección "LO QUE NUNCA DEBES HACER".
+- El resto de reglas están en [CLAUDE.md](../../CLAUDE.md) sección "LO QUE NUNCA DEBES HACER".
 
 ---
 
