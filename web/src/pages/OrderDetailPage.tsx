@@ -26,6 +26,11 @@ export default function OrderDetailPage() {
     queryKey: ['orders', id],
     queryFn: ({ signal }) => getOrder(id, signal),
     enabled: Boolean(id),
+    refetchInterval: (q) => {
+      const data = q.state.data;
+      if (data && TERMINAL_ORDER_STATES.includes(data.status)) return false;
+      return 2_000;
+    },
   });
 
   const sagaQ = useQuery({
@@ -39,6 +44,8 @@ export default function OrderDetailPage() {
     refetchInterval: (q) => {
       const data = q.state.data as SagaState | undefined;
       if (data && TERMINAL_SAGA_STATES.has(data.state)) return false;
+      const order = qc.getQueryData<typeof orderQ.data>(['orders', id]);
+      if (order && TERMINAL_ORDER_STATES.includes(order.status)) return false;
       return 2_000;
     },
   });
@@ -211,15 +218,15 @@ export default function OrderDetailPage() {
         </section>
 
         <aside className="space-y-4">
-          {sagaQ.isLoading && <Spinner label="Leyendo saga…" />}
-          {isSagaMissing && (
-            <div className="card p-4 text-sm text-slate-500">
-              Aún no hay estado de saga registrado. Esto suele pasar durante los primeros segundos tras crear el pedido.
-            </div>
-          )}
+          {sagaQ.isLoading && !isSagaMissing && <Spinner label="Leyendo saga…" />}
           {!isSagaMissing && sagaQ.error && <ErrorBanner error={sagaQ.error} />}
-          {sagaQ.data && (
-            <SagaTimeline saga={sagaQ.data} isRefreshing={sagaQ.isFetching && !sagaQ.isLoading} />
+          {(sagaQ.data || isSagaMissing) && (
+            <SagaTimeline
+              saga={sagaQ.data}
+              order={order}
+              isRefreshing={(sagaQ.isFetching && !sagaQ.isLoading) || (orderQ.isFetching && !orderQ.isLoading)}
+              isSagaMissing={isSagaMissing}
+            />
           )}
         </aside>
       </div>
