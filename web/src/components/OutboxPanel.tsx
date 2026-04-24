@@ -27,7 +27,8 @@ function shortenAddress(raw: string | null): string {
 
 function formatTime(iso: string): string {
   try {
-    return new Date(iso).toLocaleTimeString('es-ES', {
+    const needsZ = !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(iso);
+    return new Date(needsZ ? `${iso}Z` : iso).toLocaleTimeString('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',

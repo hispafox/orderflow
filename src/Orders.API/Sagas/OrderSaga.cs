@@ -35,7 +35,12 @@ public class OrderSaga : MassTransitStateMachine<OrderSagaState>
     public Event<PaymentFailed>     PaymentFailedEvent      { get; private set; } = null!;
     public Event<StockReleased>     StockReleasedEvent      { get; private set; } = null!;
 
-    public Schedule<OrderSagaState, OrderSagaTimeout> ReservationTimeout { get; private set; } = null!;
+    // ReservationTimeout desactivado temporalmente para la demo: requiere un
+    // MessageScheduler registrado (plugin rabbitmq_delayed_message_exchange
+    // en el broker o scheduler externo tipo Quartz). Sin él, Schedule(...)
+    // lanza PayloadNotFoundException y tumba la saga. Para rehabilitar ver
+    // docs/demo/Inter-Service-Communications.md §6.3.
+    // public Schedule<OrderSagaState, OrderSagaTimeout> ReservationTimeout { get; private set; } = null!;
 
     public OrderSaga()
     {
@@ -48,11 +53,11 @@ public class OrderSaga : MassTransitStateMachine<OrderSagaState>
         Event(() => PaymentFailedEvent,     x => x.CorrelateById(ctx => ctx.Message.OrderId));
         Event(() => StockReleasedEvent,     x => x.CorrelateById(ctx => ctx.Message.OrderId));
 
-        Schedule(() => ReservationTimeout, x => x.ReservationTimeoutTokenId, s =>
-        {
-            s.Delay    = TimeSpan.FromMinutes(5);
-            s.Received = x => x.CorrelateById(ctx => ctx.Message.OrderId);
-        });
+        // Schedule(() => ReservationTimeout, x => x.ReservationTimeoutTokenId, s =>
+        // {
+        //     s.Delay    = TimeSpan.FromMinutes(5);
+        //     s.Received = x => x.CorrelateById(ctx => ctx.Message.OrderId);
+        // });
 
         Initially(
             When(OrderCreatedEvent)
@@ -72,13 +77,13 @@ public class OrderSaga : MassTransitStateMachine<OrderSagaState>
                     ProductId = ctx.Saga.ProductId,
                     Quantity  = ctx.Saga.Quantity
                 })
-                .Schedule(ReservationTimeout,
-                    ctx => new OrderSagaTimeout { OrderId = ctx.Saga.CorrelationId })
+                // .Schedule(ReservationTimeout,
+                //     ctx => new OrderSagaTimeout { OrderId = ctx.Saga.CorrelationId })
                 .TransitionTo(Pending));
 
         During(Pending,
             When(StockReservedEvent)
-                .Unschedule(ReservationTimeout)
+                // .Unschedule(ReservationTimeout)
                 .Publish(ctx => new ProcessPayment
                 {
                     OrderId    = ctx.Saga.CorrelationId,
@@ -89,7 +94,7 @@ public class OrderSaga : MassTransitStateMachine<OrderSagaState>
                 .TransitionTo(PaymentProcessing),
 
             When(StockInsufficientEvent)
-                .Unschedule(ReservationTimeout)
+                // .Unschedule(ReservationTimeout)
                 .Then(ctx => ctx.Saga.FailureReason =
                     $"Insufficient stock. Requested: {ctx.Message.RequestedQuantity}, " +
                     $"Available: {ctx.Message.AvailableQuantity}")
@@ -99,18 +104,18 @@ public class OrderSaga : MassTransitStateMachine<OrderSagaState>
                     Reason  = ctx.Saga.FailureReason!
                 })
                 .TransitionTo(Failed)
-                .Finalize(),
-
-            When(ReservationTimeout.Received)
-                .Then(ctx => ctx.Saga.FailureReason =
-                    "Timeout: Products.API did not respond within 5 minutes")
-                .Publish(ctx => new OrderFailed
-                {
-                    OrderId = ctx.Saga.CorrelationId,
-                    Reason  = ctx.Saga.FailureReason!
-                })
-                .TransitionTo(Failed)
                 .Finalize());
+
+            // When(ReservationTimeout.Received)
+            //     .Then(ctx => ctx.Saga.FailureReason =
+            //         "Timeout: Products.API did not respond within 5 minutes")
+            //     .Publish(ctx => new OrderFailed
+            //     {
+            //         OrderId = ctx.Saga.CorrelationId,
+            //         Reason  = ctx.Saga.FailureReason!
+            //     })
+            //     .TransitionTo(Failed)
+            //     .Finalize());
 
         During(PaymentProcessing,
             When(PaymentProcessedEvent)

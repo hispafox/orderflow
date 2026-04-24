@@ -21,6 +21,7 @@ export default function App() {
             <NavLink to="/products" className={navClass}>Productos</NavLink>
             <NavLink to="/orders" className={navClass}>Pedidos</NavLink>
             <NavLink to="/orders/new" className={navClass}>Nuevo pedido</NavLink>
+            <NavLink to="/events" className={navClass}>Eventos</NavLink>
           </nav>
         </div>
       </header>

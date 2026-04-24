@@ -9,6 +9,7 @@ import ProductsPage from './pages/ProductsPage';
 import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import CreateOrderPage from './pages/CreateOrderPage';
+import EventsPage from './pages/EventsPage';
 
 import './index.css';
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
       { path: 'orders', element: <OrdersPage /> },
       { path: 'orders/new', element: <CreateOrderPage /> },
       { path: 'orders/:id', element: <OrderDetailPage /> },
+      { path: 'events', element: <EventsPage /> },
     ],
   },
 ]);

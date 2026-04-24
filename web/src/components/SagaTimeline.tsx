@@ -147,10 +147,18 @@ function dotClasses(status: StepStatus): string {
   }
 }
 
+function parseUtc(iso: string): Date {
+  // El backend (System.Text.Json + EF Core) suele emitir DateTimes sin 'Z'
+  // cuando el Kind es Unspecified tras leer de SQL Server. Los tratamos
+  // siempre como UTC: si ya viene con Z o ±HH:mm, lo dejamos; si no, añadimos Z.
+  const needsZ = !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(iso);
+  return new Date(needsZ ? `${iso}Z` : iso);
+}
+
 function formatTs(iso: string | null | undefined): string | null {
   if (!iso) return null;
   try {
-    return new Date(iso).toLocaleTimeString('es-ES', {
+    return parseUtc(iso).toLocaleTimeString('es-ES', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -195,7 +203,7 @@ export default function SagaTimeline({ saga, order, isRefreshing, isSagaMissing 
           en breve. La vista refrescará sola.
         </p>
         <p className="text-xs text-slate-400">
-          Creado hace {formatDurationMs(Date.now() - new Date(order.createdAt).getTime())}.
+          Creado hace {formatDurationMs(Date.now() - parseUtc(order.createdAt).getTime())}.
         </p>
       </div>
     );
@@ -216,8 +224,11 @@ export default function SagaTimeline({ saga, order, isRefreshing, isSagaMissing 
 
   const durationMs =
     completedAt
-      ? new Date(completedAt).getTime() - new Date(createdAt).getTime()
-      : Date.now() - new Date(createdAt).getTime();
+      ? parseUtc(completedAt).getTime() - parseUtc(createdAt).getTime()
+      : Date.now() - parseUtc(createdAt).getTime();
+
+  const startLabel = parseUtc(createdAt).toLocaleString('es-ES');
+  const endLabel   = completedAt ? parseUtc(completedAt).toLocaleString('es-ES') : null;
 
   return (
     <div className="card p-4 space-y-4">
@@ -275,16 +286,12 @@ export default function SagaTimeline({ saga, order, isRefreshing, isSagaMissing 
         </dd>
 
         <dt className="text-slate-500">Inicio</dt>
-        <dd className="font-mono text-slate-900 text-right">
-          {new Date(createdAt).toLocaleString('es-ES')}
-        </dd>
+        <dd className="font-mono text-slate-900 text-right">{startLabel}</dd>
 
-        {completedAt && (
+        {endLabel && (
           <>
             <dt className="text-slate-500">Fin</dt>
-            <dd className="font-mono text-slate-900 text-right">
-              {new Date(completedAt).toLocaleString('es-ES')}
-            </dd>
+            <dd className="font-mono text-slate-900 text-right">{endLabel}</dd>
           </>
         )}
 
