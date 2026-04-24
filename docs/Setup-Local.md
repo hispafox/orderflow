@@ -235,7 +235,11 @@ npm run dev
 
 ### Opción B — DevLauncher
 
-Si usas la herramienta DevLauncher, el perfil está en `.devlauncher/profiles/orderflow.json`. Lanza el perfil "orderflow" y arranca los 2 procesos juntos.
+Si usas la herramienta DevLauncher, el perfil ya está en
+`.devlauncher/profiles/orderflow.json`. Lanza el perfil "orderflow" y
+arranca backend, frontend y abre Chrome con perfil aislado.
+
+Ver detalles completos en la **sección 7** de este documento.
 
 ---
 
@@ -268,3 +272,105 @@ Si usas la herramienta DevLauncher, el perfil está en `.devlauncher/profiles/or
 - **No usar `builder.AddSqlServer()` ni `builder.AddRabbitMQ()`** en el AppHost — siempre `AddConnectionString()`.
 - **No actualizar MassTransit a 9.x** — pinneado a 8.5.2 por el tema de licencia.
 - El resto de reglas están en [CLAUDE.md](../CLAUDE.md) sección "LO QUE NUNCA DEBES HACER".
+
+---
+
+## 7. DevLauncher (perfil del repositorio)
+
+**DevLauncher** es un lanzador que ejecuta varios procesos en paralelo a
+partir de un perfil JSON, con verificación de health y apertura de URLs
+en un perfil de Chrome aislado. Útil para demos en clase: un solo click
+y tienes todo el stack arriba.
+
+> DevLauncher es una utilidad externa al proyecto. Instálala según su
+> documentación propia. Si aún no la tienes, usa la **Opción A** (dos
+> terminales con `dotnet run` y `npm run dev`); no pasa nada.
+
+### 7.1 Ubicación del perfil
+
+```
+.devlauncher/profiles/orderflow.json
+```
+
+El fichero está versionado en el repo. Cualquier cambio que hagas se
+comparte con el resto del equipo al hacer push.
+
+### 7.2 Qué levanta el perfil
+
+Tres "proyectos" en paralelo:
+
+| # | Nombre | Qué hace | URL expuesta |
+|---|---|---|---|
+| 1 | Aspire AppHost (backend completo) | `dotnet run --launch-profile https` sobre `infrastructure/OrderFlow.AppHost`. Arrastra los 5 microservicios + RabbitMQ + BDs. | <https://localhost:17149> (dashboard) |
+| 2 | orderflow-web (SPA demo) | `npm run dev` sobre `web/`. Sirve la SPA React+Vite con proxy al backend. | <http://localhost:5173> |
+| 3 | RabbitMQ Management UI | PowerShell que **verifica** el servicio Windows `RabbitMQ` (exit 1 si no está Running) y deja un proceso vivo para exponer el botón "Abrir". | <http://localhost:15672/#/> (guest/guest) |
+
+### 7.3 Campos clave del JSON
+
+```jsonc
+{
+  "name": "orderflow",
+  "rootDirectory": "",                              // raíz del repo (relativa al perfil)
+  "chromePath": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "chromeProfile": "...\\Chrome\\User Data\\orderflow Dev",  // perfil aislado
+  "startupTimeoutSeconds": 60,                      // tolerancia para el arranque
+  "projects": [
+    {
+      "name":              "Aspire AppHost …",
+      "workingDirectory":  "infrastructure\\OrderFlow.AppHost",
+      "command":           "dotnet",
+      "arguments":         "run --launch-profile https",
+      "url":               "https://localhost:17149",   // URL principal
+      "healthCheckUrl":    "https://localhost:17149",   // DevLauncher hace GET aquí
+      "openUrl":           "https://localhost:17149"    // lo que abre en Chrome
+    }
+  ]
+}
+```
+
+Los `workingDirectory` son **relativos a la raíz del repo** (no al
+perfil). El perfil aislado de Chrome (`chromeProfile`) evita
+contaminar tu navegación habitual con pestañas de trabajo.
+
+### 7.4 Uso típico
+
+1. Abrir DevLauncher.
+2. Seleccionar el perfil `orderflow`.
+3. Pulsar **Run** / **Start**.
+4. Espera ~30–60 s a que las 3 filas estén verdes (AppHost tarda por migraciones + seeds).
+5. Se abren 3 pestañas en Chrome: Dashboard de Aspire, SPA demo, Management UI de RabbitMQ.
+6. Al terminar la demo, pulsa **Stop** para parar los 3 procesos de golpe.
+
+### 7.5 Cómo añadir un nuevo proceso
+
+Por ejemplo, añadir un segundo frontend o un worker adicional — editar
+`projects` en el JSON añadiendo otro bloque con la misma estructura.
+Tras guardar, reiniciar el perfil en DevLauncher.
+
+### 7.6 Troubleshooting específico
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| "Aspire AppHost" se queda `Starting` > 60 s | migraciones + seeds + 5 servicios tardan | Sube `startupTimeoutSeconds` a 120 |
+| "RabbitMQ Management UI" sale **en rojo** al instante | Servicio `RabbitMQ` no está Running | Ver sección 1.3 · Verificación desde PowerShell |
+| El Chrome que abre no es el perfil aislado | Otra instancia de Chrome ya abierta con tu perfil personal | Cierra todas las ventanas de Chrome antes de lanzar, o usa `--user-data-dir` diferente |
+| "orderflow-web" falla con `npm ERR!` | `node_modules` no instalado | `cd web && npm install` (una vez) |
+| Dashboard pide token a pesar de la env var | Recarga previa de Aspire sin la env | Para y relanza el perfil |
+| El `lastUsedAt` del JSON aparece como cambio sin commitear | DevLauncher actualiza el timestamp | Ignora el cambio (o añade `.devlauncher/profiles/*.json` a `.gitignore` y versiona un template) |
+
+### 7.7 Equivalencia manual
+
+Cualquier cosa que hace el devlauncher la puedes replicar a mano:
+
+```powershell
+# Terminal 1 — backend
+dotnet run --project infrastructure\OrderFlow.AppHost --launch-profile https
+
+# Terminal 2 — frontend
+cd web
+npm run dev
+
+# Terminal 3 (opcional) — comprobar RabbitMQ y abrir UI
+Get-Service RabbitMQ
+Start-Process "http://localhost:15672"
+```
